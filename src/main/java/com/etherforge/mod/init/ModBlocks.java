@@ -3,6 +3,7 @@ package com.etherforge.mod.init;
 import com.etherforge.mod.EtherForge;
 import com.etherforge.mod.blocks.BlockEtherOre;
 import com.etherforge.mod.blocks.BlockIgnisOre;
+import com.etherforge.mod.blocks.BlockResonanceFurnace;
 import com.etherforge.mod.blocks.BlockUmbraOre;
 import com.etherforge.mod.util.Reference;
 import net.minecraft.block.Block;
@@ -20,6 +21,8 @@ public class ModBlocks {
     public static Block ETHER_ORE_IGNIS;
     public static Block ETHER_ORE_UMBRA;
     public static Block ETHER_BLOCK;
+    public static Block ETHER_CONDENSER;
+    public static Block RESONANCE_FURNACE;
 
     @SubscribeEvent
     public static void onRegisterBlocks(RegistryEvent.Register<Block> event) {
@@ -49,11 +52,23 @@ public class ModBlocks {
                 .setHardness(3.0f)
                 .setResistance(5.0f);
 
+        ETHER_CONDENSER = new com.etherforge.mod.blocks.BlockEtherCondenser()
+                .setRegistryName(Reference.MOD_ID, "ether_condenser")
+                .setUnlocalizedName(Reference.MOD_ID + ".ether_condenser")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
+        RESONANCE_FURNACE = new BlockResonanceFurnace()
+                .setRegistryName(Reference.MOD_ID, "resonance_furnace")
+                .setUnlocalizedName(Reference.MOD_ID + ".resonance_furnace")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
         registry.registerAll(
                 ETHER_ORE,
                 ETHER_ORE_IGNIS,
                 ETHER_ORE_UMBRA,
-                ETHER_BLOCK
+                ETHER_BLOCK,
+                ETHER_CONDENSER,
+                RESONANCE_FURNACE
         );
 
         EtherForge.LOGGER.info("Блоки зарегистрированы");
@@ -62,7 +77,7 @@ public class ModBlocks {
     @SubscribeEvent
     public static void onRegisterItemBlocks(RegistryEvent.Register<net.minecraft.item.Item> event) {
         Block[] blocks = {
-                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK
+                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK, ETHER_CONDENSER, RESONANCE_FURNACE
         };
 
         IForgeRegistry<net.minecraft.item.Item> registry = event.getRegistry();

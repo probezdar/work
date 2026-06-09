@@ -1,8 +1,11 @@
 package com.etherforge.mod;
 
+import com.etherforge.mod.gui.ModGuiHandler;
 import com.etherforge.mod.init.ModBlocks;
 import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.proxy.CommonProxy;
+import com.etherforge.mod.tileentity.TileEntityEtherCondenser;
+import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
 import com.etherforge.mod.util.Reference;
 import com.etherforge.mod.world.gen.ModWorldGen;
 import net.minecraftforge.fml.common.Mod;
@@ -12,6 +15,8 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,6 +42,15 @@ public class EtherForge {
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("EtherForge - PreInit начат");
         proxy.preInit(); // ← возвращаем
+        GameRegistry.registerTileEntity(
+                TileEntityEtherCondenser.class,
+                Reference.MOD_ID + ":ether_condenser"
+        );
+        GameRegistry.registerTileEntity(
+                TileEntityResonanceFurnace.class,
+                Reference.MOD_ID + ":resonance_furnace"
+        );
+        LOGGER.info("TileEntity зарегистрированы");
         LOGGER.info("EtherForge - PreInit завершён");
     }
 
@@ -45,6 +59,11 @@ public class EtherForge {
         LOGGER.info("EtherForge - Init начат");
         proxy.init();
         ModWorldGen.register();
+        LOGGER.info("Генерация мира зарегистрирована");
+        NetworkRegistry.INSTANCE.registerGuiHandler(
+                instance,
+                new ModGuiHandler()
+        );
         registerSmeltingRecipes();
         LOGGER.info("EtherForge - Init завершён");
     }

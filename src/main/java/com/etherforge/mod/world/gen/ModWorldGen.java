@@ -59,12 +59,6 @@ public class ModWorldGen implements IWorldGenerator {
         switch (world.provider.getDimension()) {
             case 0:
                 generateOverworld(random, chunkX, chunkZ, world);
-                // Лог каждые 100 чанков чтобы не спамить
-                if (Math.abs(chunkX) % 10 == 0 && Math.abs(chunkZ) % 10 == 0) {
-                    EtherForge.LOGGER.info(
-                            "WorldGen работает! Чанк: [{}, {}]", chunkX, chunkZ
-                    );
-                }
                 break;
         }
     }

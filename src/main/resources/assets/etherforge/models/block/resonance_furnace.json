@@ -1,0 +1,8 @@
+{
+  "parent": "block/orientable",
+  "textures": {
+    "top":   "etherforge:blocks/resonance_furnace_top",
+    "front": "etherforge:blocks/resonance_furnace_front",
+    "side":  "etherforge:blocks/resonance_furnace_side"
+  }
+}

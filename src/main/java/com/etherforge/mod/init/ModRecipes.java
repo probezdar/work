@@ -114,5 +114,34 @@ public class ModRecipes {
                 ModItems.ETHER_CRYSTAL,
                 Items.GLOWSTONE_DUST
         ).setRegistryName(Reference.MOD_ID, "crystal_lux_from_ether"));
+
+        // Конденсатор Эфира
+//  [S][S][S]
+//  [S][C][S]   S = камень, C = Ether Crystal
+//  [S][S][S]
+        registry.register(new ShapedOreRecipe(
+                null,
+                new ItemStack(ModBlocks.ETHER_CONDENSER),
+                "SSS",
+                "SCS",
+                "SSS",
+                'S', net.minecraft.init.Blocks.STONE,
+                'C', ModItems.ETHER_CRYSTAL
+        ).setRegistryName(Reference.MOD_ID, "ether_condenser"));
+
+        // Резонансная Печь
+//  [C][I][C]
+//  [I][F][I]   I = Ignis Crystal, C = Ether Crystal, F = Furnace
+//  [C][I][C]
+        registry.register(new ShapedOreRecipe(
+                null,
+                new ItemStack(ModBlocks.RESONANCE_FURNACE),
+                "CIC",
+                "IFI",
+                "CIC",
+                'C', ModItems.ETHER_CRYSTAL,
+                'I', ModItems.CRYSTAL_IGNIS,
+                'F', net.minecraft.init.Blocks.FURNACE
+        ).setRegistryName(Reference.MOD_ID, "resonance_furnace"));
     }
 }

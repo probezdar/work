@@ -37,6 +37,8 @@ public class ClientProxy extends CommonProxy {
         registerBlockModel(ModBlocks.ETHER_ORE_IGNIS, "ether_ore_ignis");
         registerBlockModel(ModBlocks.ETHER_ORE_UMBRA, "ether_ore_umbra");
         registerBlockModel(ModBlocks.ETHER_BLOCK,     "ether_block");
+        registerBlockModel(ModBlocks.ETHER_CONDENSER, "ether_condenser");
+        registerBlockModel(ModBlocks.RESONANCE_FURNACE, "resonance_furnace");
     }
 
     // Явно указываем имя без автоматического getRegistryName()
@@ -55,5 +57,6 @@ public class ClientProxy extends CommonProxy {
                 0,
                 new ModelResourceLocation(Reference.MOD_ID + ":" + name, "inventory")
         );
+
     }
 }

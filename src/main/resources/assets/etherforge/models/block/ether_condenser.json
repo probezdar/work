@@ -1,0 +1,64 @@
+{
+  "textures": {
+    "base":    "etherforge:blocks/ether_condenser_base",
+    "top":     "etherforge:blocks/ether_condenser_top",
+    "bottom":  "etherforge:blocks/ether_condenser_bottom",
+    "crystal": "etherforge:blocks/ether_condenser_crystal",
+    "side":    "etherforge:blocks/ether_condenser_side",
+    "particle": "etherforge:blocks/ether_condenser_base"
+  },
+  "elements": [
+    {
+      "__comment": "Нижняя база",
+      "from": [0, 0, 0],
+      "to":   [16, 2, 16],
+      "faces": {
+        "down":  { "texture": "#bottom", "cullface": "down" },
+        "up":    { "texture": "#base" },
+        "north": { "texture": "#base",   "cullface": "north" },
+        "south": { "texture": "#base",   "cullface": "south" },
+        "west":  { "texture": "#base",   "cullface": "west" },
+        "east":  { "texture": "#base",   "cullface": "east" }
+      }
+    },
+    {
+      "__comment": "Основной корпус",
+      "from": [1, 2, 1],
+      "to":   [15, 12, 15],
+      "faces": {
+        "down":  { "texture": "#bottom" },
+        "up":    { "texture": "#top" },
+        "north": { "texture": "#side" },
+        "south": { "texture": "#side" },
+        "west":  { "texture": "#side" },
+        "east":  { "texture": "#side" }
+      }
+    },
+    {
+      "__comment": "Верхняя рамка",
+      "from": [0, 12, 0],
+      "to":   [16, 14, 16],
+      "faces": {
+        "down":  { "texture": "#base" },
+        "up":    { "texture": "#top" },
+        "north": { "texture": "#base", "cullface": "north" },
+        "south": { "texture": "#base", "cullface": "south" },
+        "west":  { "texture": "#base", "cullface": "west" },
+        "east":  { "texture": "#base", "cullface": "east" }
+      }
+    },
+    {
+      "__comment": "Кристалл — основание (строго до 16)",
+      "from": [6, 14, 6],
+      "to":   [10, 16, 10],
+      "faces": {
+        "down":  { "texture": "#crystal" },
+        "up":    { "texture": "#crystal" },
+        "north": { "texture": "#crystal" },
+        "south": { "texture": "#crystal" },
+        "west":  { "texture": "#crystal" },
+        "east":  { "texture": "#crystal" }
+      }
+    }
+  ]
+}

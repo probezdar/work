@@ -6,6 +6,8 @@ tile.etherforge.ether_ore.name=Эфирная Руда
 tile.etherforge.ether_ore_ignis.name=Руда Игнис
 tile.etherforge.ether_ore_umbra.name=Руда Умбра
 tile.etherforge.ether_block.name=Эфирный Блок
+tile.etherforge.ether_condenser.name=Конденсатор Эфира
+tile.etherforge.resonance_furnace.name=Резонансная Печь
 
 # Предметы
 item.etherforge.ether_crystal.name=Эфирный Кристалл

@@ -6,6 +6,8 @@ tile.etherforge.ether_ore.name=Ether Ore
 tile.etherforge.ether_ore_ignis.name=Ignis Ore
 tile.etherforge.ether_ore_umbra.name=Umbra Ore
 tile.etherforge.ether_block.name=Ether Block
+tile.etherforge.ether_condenser.name=Ether Condenser
+tile.etherforge.resonance_furnace.name=Resonance Furnace
 
 # Предметы (префикс item. + unlocalizedName)
 item.etherforge.ether_crystal.name=Ether Crystal
