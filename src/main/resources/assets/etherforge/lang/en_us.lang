@@ -1,0 +1,17 @@
+# Вкладка
+itemGroup.etherforge=EtherForge
+
+# Блоки (префикс tile. + unlocalizedName)
+tile.etherforge.ether_ore.name=Ether Ore
+tile.etherforge.ether_ore_ignis.name=Ignis Ore
+tile.etherforge.ether_ore_umbra.name=Umbra Ore
+tile.etherforge.ether_block.name=Ether Block
+
+# Предметы (префикс item. + unlocalizedName)
+item.etherforge.ether_crystal.name=Ether Crystal
+item.etherforge.crystal_ignis.name=Ignis Crystal
+item.etherforge.crystal_aqua.name=Aqua Crystal
+item.etherforge.crystal_volta.name=Volta Crystal
+item.etherforge.crystal_umbra.name=Umbra Crystal
+item.etherforge.crystal_lux.name=Lux Crystal
+item.etherforge.etherscope.name=Etherscope
