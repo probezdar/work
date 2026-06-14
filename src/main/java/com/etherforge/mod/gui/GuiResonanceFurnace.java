@@ -44,7 +44,7 @@ public class GuiResonanceFurnace extends GuiContainer {
         int arrowWidth = furnace.getSmeltProgressScaled(24);
         if (arrowWidth > 0) {
             drawTexturedModalRect(
-                    x + 79, y + 34,
+                    x + 70, y + 31,   /// ИСПРАВИТЬ////
                     176, 0,
                     arrowWidth, 16
             );
@@ -61,14 +61,6 @@ public class GuiResonanceFurnace extends GuiContainer {
         }
 
         // ── Анимация огня если плавит ─────────────────
-        if (furnace.isSmelting()) {
-            int fireHeight = 14;
-            drawTexturedModalRect(
-                    x + 56, y + 20,
-                    176, 16,
-                    14, fireHeight
-            );
-        }
     }
 
     @Override
@@ -107,24 +99,12 @@ public class GuiResonanceFurnace extends GuiContainer {
 
         // Cost
         fontRenderer.drawString(
-                "Cost:", statX+64, startY+20 + lineH*2, COLOR_LABEL
+                "Cost:", statX, startY+20 + lineH*2, COLOR_LABEL
         );
         fontRenderer.drawString(
                 TileEntityResonanceFurnace.ETHER_PER_SMELT + " AE",
-                statX+64 + 42, startY+20 + lineH*2,
+                statX+30, startY+20 + lineH*2,
                 COLOR_HOT
-        );
-
-        // Status
-        fontRenderer.drawString(
-                "Status:", statX, startY+20 + lineH * 2, COLOR_LABEL
-        );
-        String status      = furnace.isSmelting() ? "Smelting..." : "Idle";
-        int    statusColor = furnace.isSmelting() ? 0x00AA00 : 0xAAAAAA;
-        fontRenderer.drawString(
-                status,
-                statX + 42, startY+20 + lineH * 2,
-                statusColor
         );
 
 

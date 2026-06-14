@@ -55,6 +55,11 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         boolean dirty = false;
 
+        // Автоматически тянем эфир из соседних конденсаторов
+        if (etherStored < MAX_ETHER) {
+            dirty = pullEtherFromNeighbors() || dirty;
+        }
+
         if (canSmelt()) {
             if (etherStored >= ETHER_PER_SMELT) {
                 smeltTime++;
@@ -66,6 +71,7 @@ public class TileEntityResonanceFurnace extends TileEntity
                     doSmelt();
                 }
             } else {
+                // Нет эфира — прогресс откатываем
                 if (smeltTime > 0) {
                     smeltTime = Math.max(0, smeltTime - 2);
                     dirty = true;
@@ -81,6 +87,37 @@ public class TileEntityResonanceFurnace extends TileEntity
         if (dirty) {
             markDirty();
         }
+    }
+
+    // ═══════════════════════════════════════════
+//  Забираем эфир у соседних конденсаторов
+// ═══════════════════════════════════════════
+    private boolean pullEtherFromNeighbors() {
+        boolean got = false;
+
+        // Проверяем все 6 сторон
+        for (net.minecraft.util.EnumFacing facing : net.minecraft.util.EnumFacing.VALUES) {
+            net.minecraft.util.math.BlockPos neighborPos = pos.offset(facing);
+            net.minecraft.tileentity.TileEntity te =
+                    world.getTileEntity(neighborPos);
+
+            if (te instanceof TileEntityEtherCondenser) {
+                TileEntityEtherCondenser condenser =
+                        (TileEntityEtherCondenser) te;
+
+                int need      = MAX_ETHER - etherStored;
+                int perTick   = 50; // сколько берём за тик максимум
+                int toExtract = Math.min(need, perTick);
+
+                if (toExtract > 0 && condenser.getEtherStored() > 0) {
+                    int extracted = condenser.extractEther(toExtract);
+                    etherStored += extracted;
+                    if (extracted > 0) got = true;
+                }
+            }
+        }
+
+        return got;
     }
 
     // ═══════════════════════════════════════════
