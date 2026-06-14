@@ -29,6 +29,11 @@ public class TileEntityResonanceFurnace extends TileEntity
     public static final int SLOT_BYPRODUCT  = 2;
     public static final int SIZE            = 3;
 
+    // ID полей для синхронизации
+    public static final int FIELD_ETHER     = 0;
+    public static final int FIELD_SMELT     = 1;
+    public static final int FIELD_COUNT     = 2;
+
     // ═══════════════════════════════════════════
     //  Данные
     // ═══════════════════════════════════════════
@@ -46,19 +51,19 @@ public class TileEntityResonanceFurnace extends TileEntity
     // ═══════════════════════════════════════════
     @Override
     public void update() {
-        if (world.isRemote) return;
+        if (world == null || world.isRemote) return;
 
         boolean dirty = false;
 
         if (canSmelt()) {
             if (etherStored >= ETHER_PER_SMELT) {
                 smeltTime++;
+                dirty = true;
 
                 if (smeltTime >= totalSmelt) {
                     smeltTime = 0;
                     etherStored -= ETHER_PER_SMELT;
                     doSmelt();
-                    dirty = true;
                 }
             } else {
                 if (smeltTime > 0) {
@@ -67,15 +72,14 @@ public class TileEntityResonanceFurnace extends TileEntity
                 }
             }
         } else {
-            smeltTime = 0;
+            if (smeltTime > 0) {
+                smeltTime = 0;
+                dirty = true;
+            }
         }
 
         if (dirty) {
             markDirty();
-            world.notifyBlockUpdate(pos,
-                    world.getBlockState(pos),
-                    world.getBlockState(pos),
-                    3);
         }
     }
 
@@ -93,18 +97,18 @@ public class TileEntityResonanceFurnace extends TileEntity
         if (output.isEmpty()) return true;
         if (!output.isItemEqual(result)) return false;
 
-        int newCount = output.getCount() + result.getCount();
-        return newCount <= output.getMaxStackSize();
+        return output.getCount() + result.getCount()
+                <= output.getMaxStackSize();
     }
 
     private void doSmelt() {
         ItemStack input  = inventory.get(SLOT_INPUT);
         ItemStack result = FurnaceRecipes.instance()
-                .getSmeltingResult(input);
+                .getSmeltingResult(input).copy();
         ItemStack output = inventory.get(SLOT_OUTPUT);
 
         if (output.isEmpty()) {
-            inventory.set(SLOT_OUTPUT, result.copy());
+            inventory.set(SLOT_OUTPUT, result);
         } else if (output.isItemEqual(result)) {
             output.grow(result.getCount());
         }
@@ -149,16 +153,16 @@ public class TileEntityResonanceFurnace extends TileEntity
     public int getEtherStored() { return etherStored; }
     public int getMaxEther()    { return MAX_ETHER; }
 
+    public void setEtherStored(int amount) {
+        this.etherStored = Math.max(0, Math.min(amount, MAX_ETHER));
+    }
+
     public int insertEther(int amount) {
         int space    = MAX_ETHER - etherStored;
         int inserted = Math.min(space, amount);
         etherStored += inserted;
         markDirty();
         return inserted;
-    }
-
-    public void setEtherStored(int amount) {
-        this.etherStored = Math.max(0, Math.min(amount, MAX_ETHER));
     }
 
     // ═══════════════════════════════════════════
@@ -178,16 +182,14 @@ public class TileEntityResonanceFurnace extends TileEntity
     }
 
     public boolean isSmelting() {
-        return smeltTime > 0 && etherStored >= ETHER_PER_SMELT;
+        return smeltTime > 0;
     }
 
     // ═══════════════════════════════════════════
-    //  IInventory — реализация
+    //  IInventory
     // ═══════════════════════════════════════════
     @Override
-    public int getSizeInventory() {
-        return SIZE;
-    }
+    public int getSizeInventory() { return SIZE; }
 
     @Override
     public boolean isEmpty() {
@@ -206,13 +208,11 @@ public class TileEntityResonanceFurnace extends TileEntity
     public ItemStack decrStackSize(int index, int count) {
         ItemStack stack = inventory.get(index);
         if (stack.isEmpty()) return ItemStack.EMPTY;
-
         if (stack.getCount() <= count) {
             inventory.set(index, ItemStack.EMPTY);
             markDirty();
             return stack;
         }
-
         ItemStack split = stack.splitStack(count);
         markDirty();
         return split;
@@ -235,14 +235,10 @@ public class TileEntityResonanceFurnace extends TileEntity
     }
 
     @Override
-    public int getInventoryStackLimit() {
-        return 64;
-    }
+    public int getInventoryStackLimit() { return 64; }
 
     @Override
-    public boolean isUsableByPlayer(EntityPlayer player) {
-        return true;
-    }
+    public boolean isUsableByPlayer(EntityPlayer player) { return true; }
 
     @Override
     public void openInventory(EntityPlayer player) {}
@@ -259,14 +255,28 @@ public class TileEntityResonanceFurnace extends TileEntity
         return false;
     }
 
+    // ═══════════════════════════════════════════
+    //  Поля синхронизации — ВАЖНО для GUI
+    // ═══════════════════════════════════════════
     @Override
-    public int getField(int id) { return 0; }
+    public int getField(int id) {
+        switch (id) {
+            case FIELD_ETHER: return etherStored;
+            case FIELD_SMELT: return smeltTime;
+            default:          return 0;
+        }
+    }
 
     @Override
-    public void setField(int id, int value) {}
+    public void setField(int id, int value) {
+        switch (id) {
+            case FIELD_ETHER: etherStored = value; break;
+            case FIELD_SMELT: smeltTime   = value; break;
+        }
+    }
 
     @Override
-    public int getFieldCount() { return 0; }
+    public int getFieldCount() { return FIELD_COUNT; }
 
     @Override
     public void clear() {
@@ -276,22 +286,17 @@ public class TileEntityResonanceFurnace extends TileEntity
     }
 
     @Override
-    public String getName() { return "resonance_furnace"; }
+    public String getName()         { return "resonance_furnace"; }
 
     @Override
-    public boolean hasCustomName() { return false; }
+    public boolean hasCustomName()  { return false; }
 
     @Override
     public ITextComponent getDisplayName() {
         return new TextComponentString(getName());
     }
 
-    // ═══════════════════════════════════════════
-    //  Геттер инвентаря
-    // ═══════════════════════════════════════════
-    public NonNullList<ItemStack> getInventory() {
-        return inventory;
-    }
+    public NonNullList<ItemStack> getInventory() { return inventory; }
 
     // ═══════════════════════════════════════════
     //  NBT
@@ -304,9 +309,9 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         for (int i = 0; i < SIZE; i++) {
             if (!inventory.get(i).isEmpty()) {
-                NBTTagCompound itemTag = new NBTTagCompound();
-                inventory.get(i).writeToNBT(itemTag);
-                compound.setTag("Slot" + i, itemTag);
+                NBTTagCompound tag = new NBTTagCompound();
+                inventory.get(i).writeToNBT(tag);
+                compound.setTag("Slot" + i, tag);
             }
         }
         return compound;
@@ -320,8 +325,8 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         for (int i = 0; i < SIZE; i++) {
             if (compound.hasKey("Slot" + i)) {
-                inventory.set(i,
-                        new ItemStack(compound.getCompoundTag("Slot" + i)));
+                inventory.set(i, new ItemStack(
+                        compound.getCompoundTag("Slot" + i)));
             }
         }
     }
@@ -342,8 +347,9 @@ public class TileEntityResonanceFurnace extends TileEntity
     }
 
     @Override
-    public void onDataPacket(net.minecraft.network.NetworkManager net,
-                             net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
+    public void onDataPacket(
+            net.minecraft.network.NetworkManager net,
+            net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
     }
 }

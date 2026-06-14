@@ -74,50 +74,65 @@ public class GuiResonanceFurnace extends GuiContainer {
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 
-        // Заголовок
+        // ── Заголовок ────────────────────────────────
         String title = "Resonance Furnace";
         fontRenderer.drawString(
                 title,
                 xSize / 2 - fontRenderer.getStringWidth(title) / 2,
-                6, COLOR_TITLE
+                6,
+                COLOR_TITLE
         );
 
-        // ── Статистика слева ─────────────────────────
+        // ── Статистика — левый блок ───────────────────
+        // Начинаем ПОСЛЕ полоски эфира (полоска x=7..20)
+        // Статистика начинается с x=26
         int statX  = 26;
         int startY = 18;
-        int lineH  = 9;
+        int lineH  = 10;
 
-        fontRenderer.drawString("Ether", 8, 12, COLOR_LABEL);
+        // Метка полоски
+        fontRenderer.drawString(
+                "Ether",
+                6, 8,
+                COLOR_LABEL
+        );
 
-        // Эфир
-        fontRenderer.drawString("Stored:", statX, startY, COLOR_LABEL);
+        // Stored
+        fontRenderer.drawString("Stored:", statX, startY+2, COLOR_LABEL);
         fontRenderer.drawString(
                 furnace.getEtherStored() + " AE",
-                statX + 38, startY, COLOR_ETHER
+                statX + 42, startY+2,
+                COLOR_ETHER
         );
 
-        // Стоимость
-        fontRenderer.drawString("Cost:", statX, startY + lineH, COLOR_LABEL);
+        // Cost
+        fontRenderer.drawString(
+                "Cost:", statX+64, startY+20 + lineH*2, COLOR_LABEL
+        );
         fontRenderer.drawString(
                 TileEntityResonanceFurnace.ETHER_PER_SMELT + " AE",
-                statX + 38, startY + lineH, COLOR_HOT
+                statX+64 + 42, startY+20 + lineH*2,
+                COLOR_HOT
         );
 
-        // Статус
-        fontRenderer.drawString("Status:", statX, startY + lineH * 2, COLOR_LABEL);
-        String status = furnace.isSmelting() ? "Smelting..." : "Idle";
-        int statusColor = furnace.isSmelting() ? 0x00AA00 : 0xAAAAAA;
+        // Status
+        fontRenderer.drawString(
+                "Status:", statX, startY+20 + lineH * 2, COLOR_LABEL
+        );
+        String status      = furnace.isSmelting() ? "Smelting..." : "Idle";
+        int    statusColor = furnace.isSmelting() ? 0x00AA00 : 0xAAAAAA;
         fontRenderer.drawString(
                 status,
-                statX + 38, startY + lineH * 2, statusColor
+                statX + 42, startY+20 + lineH * 2,
+                statusColor
         );
 
-        // Подписи слотов
-        fontRenderer.drawString("In",      52, 25, COLOR_LABEL);
-        fontRenderer.drawString("Out",    112, 25, COLOR_LABEL);
-        fontRenderer.drawString("Bonus",  108, 55, COLOR_LABEL);
 
-        // Подпись инвентаря
-        fontRenderer.drawString("Inventory", 8, 74, COLOR_TITLE);
+        // ── Инвентарь ─────────────────────────────────
+        fontRenderer.drawString(
+                "Inventory",
+                8, 72,
+                COLOR_TITLE
+        );
     }
 }

@@ -5,6 +5,7 @@ import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -37,10 +38,10 @@ public class BlockResonanceFurnace extends Block {
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state,
-                                    EntityPlayer player, EnumHand hand,
-                                    EnumFacing facing, float hitX,
-                                    float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos,
+                                    IBlockState state, EntityPlayer player,
+                                    EnumHand hand, EnumFacing facing,
+                                    float hitX, float hitY, float hitZ) {
         if (!world.isRemote) {
             player.openGui(
                     com.etherforge.mod.EtherForge.instance,
@@ -54,13 +55,21 @@ public class BlockResonanceFurnace extends Block {
 
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
-        // Выбрасываем предметы из инвентаря при разрушении
         TileEntity te = world.getTileEntity(pos);
         if (te instanceof TileEntityResonanceFurnace) {
-            TileEntityResonanceFurnace furnace = (TileEntityResonanceFurnace) te;
+            TileEntityResonanceFurnace furnace =
+                    (TileEntityResonanceFurnace) te;
+
             for (ItemStack stack : furnace.getInventory()) {
                 if (!stack.isEmpty()) {
-                    spawnAsEntity(world, pos, stack);
+                    EntityItem entity = new EntityItem(
+                            world,
+                            pos.getX() + 0.5,
+                            pos.getY() + 0.5,
+                            pos.getZ() + 0.5,
+                            stack
+                    );
+                    world.spawnEntity(entity);
                 }
             }
         }

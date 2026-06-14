@@ -16,9 +16,9 @@ public class ContainerResonanceFurnace extends Container {
                                      TileEntityResonanceFurnace furnace) {
         this.furnace = furnace;
 
-        // Слот входа
+        // Слот входа — левее по центру
         addSlotToContainer(new Slot(furnace,
-                TileEntityResonanceFurnace.SLOT_INPUT, 56, 35) {
+                TileEntityResonanceFurnace.SLOT_INPUT, 57, 31) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return !FurnaceRecipes.instance()
@@ -26,18 +26,18 @@ public class ContainerResonanceFurnace extends Container {
             }
         });
 
-        // Слот выхода
+// Слот выхода — правее
         addSlotToContainer(new Slot(furnace,
-                TileEntityResonanceFurnace.SLOT_OUTPUT, 116, 35) {
+                TileEntityResonanceFurnace.SLOT_OUTPUT, 129, 21) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return false;
             }
         });
 
-        // Слот побочного продукта
+// Слот побочного продукта — под выходом
         addSlotToContainer(new Slot(furnace,
-                TileEntityResonanceFurnace.SLOT_BYPRODUCT, 116, 55) {
+                TileEntityResonanceFurnace.SLOT_BYPRODUCT, 129, 38) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return false;
