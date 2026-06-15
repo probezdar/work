@@ -31,6 +31,14 @@ public class ClientProxy extends CommonProxy {
         registerItemModel(ModItems.CRYSTAL_UMBRA,  "crystal_umbra");
         registerItemModel(ModItems.CRYSTAL_LUX,    "crystal_lux");
         registerItemModel(ModItems.ETHERSCOPE,     "etherscope");
+        registerItemModel(ModItems.CATALYST_STEAM, "catalyst_steam");
+        registerItemModel(ModItems.CATALYST_DAWN, "catalyst_dawn");
+        registerItemModel(ModItems.CATALYST_DEPTH, "catalyst_depth");
+        registerItemModel(ModItems.CATALYST_ECLIPSE, "catalyst_eclipse");
+        registerItemModel(ModItems.CATALYST_PLASMA, "catalyst_plasma");
+        registerItemModel(ModItems.CATALYST_SURGE, "catalyst_surge");
+        registerItemModel(ModItems.CATALYST_SPARK, "catalyst_spark");
+        registerItemModel(ModItems.CATALYST_EMBER, "catalyst_ember");
 
         // ── Блоки ───────────────────────────────────────────────
         registerBlockModel(ModBlocks.ETHER_ORE,       "ether_ore");
@@ -39,6 +47,7 @@ public class ClientProxy extends CommonProxy {
         registerBlockModel(ModBlocks.ETHER_BLOCK,     "ether_block");
         registerBlockModel(ModBlocks.ETHER_CONDENSER, "ether_condenser");
         registerBlockModel(ModBlocks.RESONANCE_FURNACE, "resonance_furnace");
+        registerBlockModel(ModBlocks.ETHER_WORKBENCH, "ether_workbench");
     }
 
     // Явно указываем имя без автоматического getRegistryName()

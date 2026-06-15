@@ -8,6 +8,7 @@ tile.etherforge.ether_ore_umbra.name=Umbra Ore
 tile.etherforge.ether_block.name=Ether Block
 tile.etherforge.ether_condenser.name=Ether Condenser
 tile.etherforge.resonance_furnace.name=Resonance Furnace
+tile.etherforge.ether_workbench.name=Ether Workbench
 
 # Предметы (префикс item. + unlocalizedName)
 item.etherforge.ether_crystal.name=Ether Crystal
@@ -17,3 +18,11 @@ item.etherforge.crystal_volta.name=Volta Crystal
 item.etherforge.crystal_umbra.name=Umbra Crystal
 item.etherforge.crystal_lux.name=Lux Crystal
 item.etherforge.etherscope.name=Etherscope
+item.etherforge.catalyst_steam.name=Steam Catalyst
+item.etherforge.catalyst_plasma.name=Plasma Catalyst
+item.etherforge.catalyst_dawn.name=Dawn Catalyst
+item.etherforge.catalyst_surge.name=Surge Catalyst
+item.etherforge.catalyst_depth.name=Depth Catalyst
+item.etherforge.catalyst_spark.name=Spark Catalyst
+item.etherforge.catalyst_eclipse.name=Eclipse Catalyst
+item.etherforge.catalyst_ember.name=Ember Catalyst

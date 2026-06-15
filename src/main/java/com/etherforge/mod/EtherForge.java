@@ -4,7 +4,9 @@ import com.etherforge.mod.gui.ModGuiHandler;
 import com.etherforge.mod.init.ModBlocks;
 import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.proxy.CommonProxy;
+import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
 import com.etherforge.mod.tileentity.TileEntityEtherCondenser;
+import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
 import com.etherforge.mod.util.Reference;
 import com.etherforge.mod.world.gen.ModWorldGen;
@@ -50,6 +52,10 @@ public class EtherForge {
                 TileEntityResonanceFurnace.class,
                 Reference.MOD_ID + ":resonance_furnace"
         );
+        GameRegistry.registerTileEntity(
+                TileEntityEtherWorkbench.class,
+                Reference.MOD_ID + ":ether_workbench"
+        );
         LOGGER.info("TileEntity зарегистрированы");
         LOGGER.info("EtherForge - PreInit завершён");
     }
@@ -67,6 +73,7 @@ public class EtherForge {
                 new ModGuiHandler()
         );
         registerSmeltingRecipes();
+        EtherWorkbenchRecipeRegistry.init();
         LOGGER.info("EtherForge - Init завершён");
     }
 

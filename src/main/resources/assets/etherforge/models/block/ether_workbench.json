@@ -1,0 +1,90 @@
+{
+  "textures": {
+    "base": "etherforge:blocks/ether_condenser_base",
+    "top": "etherforge:blocks/ether_condenser_top",
+    "bottom": "etherforge:blocks/ether_condenser_bottom",
+    "crystal": "etherforge:blocks/ether_condenser_crystal",
+    "side": "etherforge:blocks/ether_condenser_side",
+    "particle": "etherforge:blocks/ether_condenser_base"
+  },
+  "elements": [
+    {
+      "__comment": "Ножка ЛБ",
+      "from": [1, 0, 1],
+      "to": [3, 8, 3],
+      "faces": {
+        "down": {"texture":"#bottom", "cullface":"down"},
+        "up": {"texture":"#base"},
+        "north": {"texture":"#side"},
+        "south": {"texture":"#side"},
+        "west": {"texture":"#side"},
+        "east": {"texture":"#side"}
+      }
+    },
+    {
+      "__comment": "Ножка ПБ",
+      "from": [13, 0, 1],
+      "to": [15, 8, 3],
+      "faces": {
+        "down": {"texture":"#bottom", "cullface":"down"},
+        "up": {"texture":"#base"},
+        "north": {"texture":"#side"},
+        "south": {"texture":"#side"},
+        "west": {"texture":"#side"},
+        "east": {"texture":"#side"}
+      }
+    },
+    {
+      "__comment": "Ножка ЛЗ",
+      "from": [1, 0, 13],
+      "to": [3, 8, 15],
+      "faces": {
+        "down": {"texture":"#bottom", "cullface":"down"},
+        "up": {"texture":"#base"},
+        "north": {"texture":"#side"},
+        "south": {"texture":"#side"},
+        "west": {"texture":"#side"},
+        "east": {"texture":"#side"}
+      }
+    },
+    {
+      "__comment": "Ножка ПЗ",
+      "from": [13, 0, 13],
+      "to": [15, 8, 15],
+      "faces": {
+        "down": {"texture":"#bottom", "cullface":"down"},
+        "up": {"texture":"#base"},
+        "north": {"texture":"#side"},
+        "south": {"texture":"#side"},
+        "west": {"texture":"#side"},
+        "east": {"texture":"#side"}
+      }
+    },
+    {
+      "__comment": "Столешница",
+      "from": [0, 8, 0],
+      "to": [16, 12, 16],
+      "faces": {
+        "down": {"texture":"#base"},
+        "up": {"texture":"#top"},
+        "north": {"texture":"#side", "cullface":"north"},
+        "south": {"texture":"#side", "cullface":"south"},
+        "west": {"texture":"#side", "cullface":"west"},
+        "east": {"texture":"#side", "cullface":"east"}
+      }
+    },
+    {
+      "__comment": "Кристалл",
+      "from": [6, 12, 6],
+      "to": [10, 15, 10],
+      "faces": {
+        "down": {"texture":"#crystal"},
+        "up": {"texture":"#crystal"},
+        "north": {"texture":"#crystal"},
+        "south": {"texture":"#crystal"},
+        "west": {"texture":"#crystal"},
+        "east": {"texture":"#crystal"}
+      }
+    }
+  ]
+}

@@ -8,6 +8,7 @@ tile.etherforge.ether_ore_umbra.name=Руда Умбра
 tile.etherforge.ether_block.name=Эфирный Блок
 tile.etherforge.ether_condenser.name=Конденсатор Эфира
 tile.etherforge.resonance_furnace.name=Резонансная Печь
+tile.etherforge.ether_workbench.name=Эфирный Верстак
 
 # Предметы
 item.etherforge.ether_crystal.name=Эфирный Кристалл
@@ -17,3 +18,11 @@ item.etherforge.crystal_volta.name=Кристалл Вольта
 item.etherforge.crystal_umbra.name=Кристалл Умбра
 item.etherforge.crystal_lux.name=Кристалл Люкс
 item.etherforge.etherscope.name=Эфироскоп
+item.etherforge.catalyst_steam.name=Паровой Катализатор
+item.etherforge.catalyst_plasma.name=Плазменный Катализатор
+item.etherforge.catalyst_dawn.name=Катализатор Рассвета
+item.etherforge.catalyst_surge.name=Катализатор Напора
+item.etherforge.catalyst_depth.name=Катализатор Глубины
+item.etherforge.catalyst_spark.name=Катализатор Искры
+item.etherforge.catalyst_eclipse.name=Катализатор Затмения
+item.etherforge.catalyst_ember.name=Катализатор Уголька

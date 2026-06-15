@@ -1,10 +1,7 @@
 package com.etherforge.mod.init;
 
 import com.etherforge.mod.EtherForge;
-import com.etherforge.mod.blocks.BlockEtherOre;
-import com.etherforge.mod.blocks.BlockIgnisOre;
-import com.etherforge.mod.blocks.BlockResonanceFurnace;
-import com.etherforge.mod.blocks.BlockUmbraOre;
+import com.etherforge.mod.blocks.*;
 import com.etherforge.mod.util.Reference;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -23,6 +20,7 @@ public class ModBlocks {
     public static Block ETHER_BLOCK;
     public static Block ETHER_CONDENSER;
     public static Block RESONANCE_FURNACE;
+    public static Block ETHER_WORKBENCH;
 
     @SubscribeEvent
     public static void onRegisterBlocks(RegistryEvent.Register<Block> event) {
@@ -62,13 +60,20 @@ public class ModBlocks {
                 .setUnlocalizedName(Reference.MOD_ID + ".resonance_furnace")
                 .setCreativeTab(ModCreativeTab.INSTANCE);
 
+        ETHER_WORKBENCH = new BlockEtherWorkbench()
+                .setRegistryName(Reference.MOD_ID, "ether_workbench")
+                .setUnlocalizedName(Reference.MOD_ID + ".ether_workbench")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
+
         registry.registerAll(
                 ETHER_ORE,
                 ETHER_ORE_IGNIS,
                 ETHER_ORE_UMBRA,
                 ETHER_BLOCK,
                 ETHER_CONDENSER,
-                RESONANCE_FURNACE
+                RESONANCE_FURNACE,
+                ETHER_WORKBENCH
         );
 
         EtherForge.LOGGER.info("Блоки зарегистрированы");
@@ -77,7 +82,7 @@ public class ModBlocks {
     @SubscribeEvent
     public static void onRegisterItemBlocks(RegistryEvent.Register<net.minecraft.item.Item> event) {
         Block[] blocks = {
-                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK, ETHER_CONDENSER, RESONANCE_FURNACE
+                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK, ETHER_CONDENSER, RESONANCE_FURNACE, ETHER_WORKBENCH
         };
 
         IForgeRegistry<net.minecraft.item.Item> registry = event.getRegistry();

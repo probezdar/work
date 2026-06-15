@@ -21,6 +21,18 @@ public class ModItems {
     public static Item CRYSTAL_UMBRA;        // тьма/пространство
     public static Item CRYSTAL_LUX;          // свет/скорость
 
+    // ═══════════════════════════════════════════
+//  Кристаллы-катализаторы (сплавы)
+// ═══════════════════════════════════════════
+    public static Item CATALYST_STEAM;       // Ignis + Aqua
+    public static Item CATALYST_PLASMA;      // Ignis + Volta
+    public static Item CATALYST_DAWN;        // Ignis + Lux
+    public static Item CATALYST_SURGE;       // Aqua + Volta
+    public static Item CATALYST_DEPTH;       // Aqua + Umbra
+    public static Item CATALYST_SPARK;       // Volta + Lux
+    public static Item CATALYST_ECLIPSE;     // Umbra + Lux
+    public static Item CATALYST_EMBER;       // Ignis + Umbra
+
     // ═══════════════════════════════
     //  Инструменты и прочее
     // ═══════════════════════════════
@@ -38,6 +50,15 @@ public class ModItems {
         CRYSTAL_LUX   = createItem("crystal_lux");
         ETHERSCOPE    = createItem("etherscope");
 
+        CATALYST_STEAM  = createCatalyst("catalyst_steam");
+        CATALYST_PLASMA = createCatalyst("catalyst_plasma");
+        CATALYST_DAWN   = createCatalyst("catalyst_dawn");
+        CATALYST_SURGE  = createCatalyst("catalyst_surge");
+        CATALYST_DEPTH  = createCatalyst("catalyst_depth");
+        CATALYST_SPARK  = createCatalyst("catalyst_spark");
+        CATALYST_ECLIPSE= createCatalyst("catalyst_eclipse");
+        CATALYST_EMBER  = createCatalyst("catalyst_ember");
+
         registry.registerAll(
                 ETHER_CRYSTAL,
                 CRYSTAL_IGNIS,
@@ -45,7 +66,9 @@ public class ModItems {
                 CRYSTAL_VOLTA,
                 CRYSTAL_UMBRA,
                 CRYSTAL_LUX,
-                ETHERSCOPE
+                ETHERSCOPE,
+                CATALYST_STEAM, CATALYST_PLASMA, CATALYST_DAWN, CATALYST_SURGE,
+                CATALYST_DEPTH, CATALYST_SPARK, CATALYST_ECLIPSE, CATALYST_EMBER
         );
 
         EtherForge.LOGGER.info("Предметы зарегистрированы");
@@ -59,6 +82,15 @@ public class ModItems {
                 .setRegistryName(Reference.MOD_ID, name)
                 .setUnlocalizedName(Reference.MOD_ID + "." + name)
                 .setCreativeTab(ModCreativeTab.INSTANCE);
+    }
+
+    private static Item createCatalyst(String name) {
+        return new Item()
+                .setRegistryName(Reference.MOD_ID, name)
+                .setUnlocalizedName(Reference.MOD_ID + "." + name)
+                .setCreativeTab(ModCreativeTab.INSTANCE)
+                .setMaxDamage(64)   // 64 использования
+                .setNoRepair();
     }
 
     // Вызывается из главного класса
