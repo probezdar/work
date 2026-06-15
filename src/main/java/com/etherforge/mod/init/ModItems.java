@@ -1,6 +1,7 @@
 package com.etherforge.mod.init;
 
 import com.etherforge.mod.EtherForge;
+import com.etherforge.mod.items.ItemEtherscope;
 import com.etherforge.mod.util.Reference;
 import net.minecraft.item.Item;
 import net.minecraftforge.event.RegistryEvent;
@@ -20,6 +21,7 @@ public class ModItems {
     public static Item CRYSTAL_VOLTA;        // энергия
     public static Item CRYSTAL_UMBRA;        // тьма/пространство
     public static Item CRYSTAL_LUX;          // свет/скорость
+    public static Item ETHERSCOPE;
 
     // ═══════════════════════════════════════════
 //  Кристаллы-катализаторы (сплавы)
@@ -36,7 +38,6 @@ public class ModItems {
     // ═══════════════════════════════
     //  Инструменты и прочее
     // ═══════════════════════════════
-    public static Item ETHERSCOPE;           // эфироскоп
 
     @SubscribeEvent
     public static void onRegisterItems(RegistryEvent.Register<Item> event) {
@@ -48,7 +49,8 @@ public class ModItems {
         CRYSTAL_VOLTA = createItem("crystal_volta");
         CRYSTAL_UMBRA = createItem("crystal_umbra");
         CRYSTAL_LUX   = createItem("crystal_lux");
-        ETHERSCOPE    = createItem("etherscope");
+        ETHERSCOPE = new com.etherforge.mod.items.ItemEtherscope();
+
 
         CATALYST_STEAM  = createCatalyst("catalyst_steam");
         CATALYST_PLASMA = createCatalyst("catalyst_plasma");
@@ -66,10 +68,10 @@ public class ModItems {
                 CRYSTAL_VOLTA,
                 CRYSTAL_UMBRA,
                 CRYSTAL_LUX,
-                ETHERSCOPE,
                 CATALYST_STEAM, CATALYST_PLASMA, CATALYST_DAWN, CATALYST_SURGE,
                 CATALYST_DEPTH, CATALYST_SPARK, CATALYST_ECLIPSE, CATALYST_EMBER
         );
+        registry.register(ETHERSCOPE);
 
         EtherForge.LOGGER.info("Предметы зарегистрированы");
     }

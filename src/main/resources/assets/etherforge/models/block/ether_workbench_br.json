@@ -1,0 +1,38 @@
+{
+  "textures": {
+    "side":     "etherforge:blocks/ether_workbench_side",
+    "front":    "etherforge:blocks/ether_workbench_front",
+    "top":      "etherforge:blocks/ether_workbench_top",
+    "bottom":   "etherforge:blocks/ether_workbench_bottom",
+    "crystal":  "etherforge:blocks/ether_workbench_crystal",
+    "particle": "etherforge:blocks/ether_workbench_particle"
+  },
+  "elements": [
+    {
+      "__comment": "Ножка",
+      "from": [0, 0, 0],
+      "to":   [8, 6, 8],
+      "faces": {
+        "down":  {"texture": "#bottom", "cullface": "down"},
+        "up":    {"texture": "#top"},
+        "north": {"texture": "#side"},
+        "south": {"texture": "#side", "cullface": "south"},
+        "west":  {"texture": "#side"},
+        "east":  {"texture": "#front", "cullface": "east"}
+      }
+    },
+    {
+      "__comment": "Столешница",
+      "from": [0, 6, 0],
+      "to":   [8, 10, 8],
+      "faces": {
+        "down":  {"texture": "#bottom"},
+        "up":    {"texture": "#top"},
+        "north": {"texture": "#side"},
+        "south": {"texture": "#side", "cullface": "south"},
+        "west":  {"texture": "#side"},
+        "east":  {"texture": "#front", "cullface": "east"}
+      }
+    }
+  ]
+}
