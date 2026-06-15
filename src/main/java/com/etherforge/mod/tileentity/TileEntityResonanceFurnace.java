@@ -12,6 +12,8 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class TileEntityResonanceFurnace extends TileEntity
@@ -22,17 +24,54 @@ public class TileEntityResonanceFurnace extends TileEntity
     // ═══════════════════════════════════════════
     public static final int MAX_ETHER       = 5000;
     public static final int ETHER_PER_SMELT = 100;
-    public static final int SMELT_TIME      = 200;
+    public static final int SMELT_TIME      = 100; // быстрее (было 200)
 
     public static final int SLOT_INPUT      = 0;
     public static final int SLOT_OUTPUT     = 1;
     public static final int SLOT_BYPRODUCT  = 2;
     public static final int SIZE            = 3;
 
-    // ID полей для синхронизации
     public static final int FIELD_ETHER     = 0;
     public static final int FIELD_SMELT     = 1;
     public static final int FIELD_COUNT     = 2;
+
+    // ═══════════════════════════════════════════
+    //  Особые рецепты Резонансной Печи
+    //  input → output (вместо стандартного результата)
+    // ═══════════════════════════════════════════
+    private static final Map<net.minecraft.item.Item, net.minecraft.item.Item>
+            RESONANCE_RECIPES = new HashMap<>();
+
+    static {
+        // Эфирная руда → 2x Эфирный кристалл (через особый рецепт)
+        // Игнис руда   → Кристалл Вольта (вместо Игниса)
+        // Умбра руда   → Кристалл Аква   (вместо Умбры)
+        // Заполняем в init() после регистрации предметов
+    }
+
+    // Вызывается из EtherForge.init() после регистрации предметов
+    public static void initResonanceRecipes() {
+        // Игнис руда в Резонансной Печи → Кристалл Вольта
+        RESONANCE_RECIPES.put(
+                net.minecraft.item.Item.getItemFromBlock(
+                        com.etherforge.mod.init.ModBlocks.ETHER_ORE_IGNIS),
+                ModItems.CRYSTAL_VOLTA
+        );
+
+        // Умбра руда в Резонансной Печи → Кристалл Люкс
+        RESONANCE_RECIPES.put(
+                net.minecraft.item.Item.getItemFromBlock(
+                        com.etherforge.mod.init.ModBlocks.ETHER_ORE_UMBRA),
+                ModItems.CRYSTAL_LUX
+        );
+
+        // Эфирная руда → Кристалл Аква
+        RESONANCE_RECIPES.put(
+                net.minecraft.item.Item.getItemFromBlock(
+                        com.etherforge.mod.init.ModBlocks.ETHER_ORE),
+                ModItems.CRYSTAL_AQUA
+        );
+    }
 
     // ═══════════════════════════════════════════
     //  Данные
@@ -43,6 +82,10 @@ public class TileEntityResonanceFurnace extends TileEntity
     private int etherStored = 0;
     private int smeltTime   = 0;
     private int totalSmelt  = SMELT_TIME;
+
+    // Лунный множитель
+    private int    moonCheckTimer = 0;
+    private float  moonMultiplier = 1.0f; // 1.0 день / 1.5 ночь / 2.0 полнолуние
 
     private final Random random = new Random();
 
@@ -55,14 +98,33 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         boolean dirty = false;
 
-        // Автоматически тянем эфир из соседних конденсаторов
+        // Тянем эфир из соседних конденсаторов
         if (etherStored < MAX_ETHER) {
             dirty = pullEtherFromNeighbors() || dirty;
         }
 
+        // Обновляем лунный множитель раз в 5 секунд
+        moonCheckTimer++;
+        if (moonCheckTimer >= 20) {
+            moonCheckTimer = 0;
+            moonMultiplier = calcMoonMultiplier();
+        }
+
         if (canSmelt()) {
             if (etherStored >= ETHER_PER_SMELT) {
-                smeltTime++;
+                // Применяем лунный множитель к скорости
+                // moonMultiplier > 1 = быстрее
+                // Реализуем через дробное накопление:
+                // добавляем к smeltTime 1 или 2 в зависимости от множителя
+                int tickAdd = 1;
+                if (moonMultiplier >= 2.0f) {
+                    tickAdd = 2; // полнолуние — вдвое быстрее
+                } else if (moonMultiplier >= 1.5f) {
+                    // ночь — каждый второй тик добавляем +1 бонус
+                    tickAdd = (smeltTime % 2 == 0) ? 2 : 1;
+                }
+
+                smeltTime += tickAdd;
                 dirty = true;
 
                 if (smeltTime >= totalSmelt) {
@@ -71,7 +133,6 @@ public class TileEntityResonanceFurnace extends TileEntity
                     doSmelt();
                 }
             } else {
-                // Нет эфира — прогресс откатываем
                 if (smeltTime > 0) {
                     smeltTime = Math.max(0, smeltTime - 2);
                     dirty = true;
@@ -86,17 +147,47 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         if (dirty) {
             markDirty();
+            world.notifyBlockUpdate(pos,
+                    world.getBlockState(pos),
+                    world.getBlockState(pos), 3);
         }
     }
 
     // ═══════════════════════════════════════════
-//  Забираем эфир у соседних конденсаторов
-// ═══════════════════════════════════════════
+    //  Лунный множитель
+    // ═══════════════════════════════════════════
+    private float calcMoonMultiplier() {
+        if (world.isDaytime()) {
+            return 1.0f; // день — обычная скорость
+        }
+
+        // Фаза луны: 0 = полнолуние, 4 = новолуние
+        int phase = world.provider.getMoonPhase(world.getWorldTime());
+
+        if (phase == 0) {
+            return 2.0f; // полнолуние — х2 скорость + бонус к побочке
+        } else if (phase <= 2 || phase >= 6) {
+            return 1.5f; // почти полная / убывающая — х1.5
+        } else {
+            return 1.2f; // обычная ночь — х1.2
+        }
+    }
+
+    // Геттер для GUI
+    public float getMoonMultiplier() { return moonMultiplier; }
+
+    public boolean isFullMoon() {
+        return !world.isDaytime() && world.provider.getMoonPhase(world.getWorldTime()) == 0;
+    }
+
+    // ═══════════════════════════════════════════
+    //  Тянем эфир из соседних конденсаторов
+    // ═══════════════════════════════════════════
     private boolean pullEtherFromNeighbors() {
         boolean got = false;
 
-        // Проверяем все 6 сторон
-        for (net.minecraft.util.EnumFacing facing : net.minecraft.util.EnumFacing.VALUES) {
+        for (net.minecraft.util.EnumFacing facing :
+                net.minecraft.util.EnumFacing.VALUES) {
             net.minecraft.util.math.BlockPos neighborPos = pos.offset(facing);
             net.minecraft.tileentity.TileEntity te =
                     world.getTileEntity(neighborPos);
@@ -106,8 +197,7 @@ public class TileEntityResonanceFurnace extends TileEntity
                         (TileEntityEtherCondenser) te;
 
                 int need      = MAX_ETHER - etherStored;
-                int perTick   = 50; // сколько берём за тик максимум
-                int toExtract = Math.min(need, perTick);
+                int toExtract = Math.min(need, 50);
 
                 if (toExtract > 0 && condenser.getEtherStored() > 0) {
                     int extracted = condenser.extractEther(toExtract);
@@ -116,7 +206,6 @@ public class TileEntityResonanceFurnace extends TileEntity
                 }
             }
         }
-
         return got;
     }
 
@@ -126,8 +215,7 @@ public class TileEntityResonanceFurnace extends TileEntity
     private boolean canSmelt() {
         if (inventory.get(SLOT_INPUT).isEmpty()) return false;
 
-        ItemStack result = FurnaceRecipes.instance()
-                .getSmeltingResult(inventory.get(SLOT_INPUT));
+        ItemStack result = getResonanceResult(inventory.get(SLOT_INPUT));
         if (result.isEmpty()) return false;
 
         ItemStack output = inventory.get(SLOT_OUTPUT);
@@ -140,8 +228,7 @@ public class TileEntityResonanceFurnace extends TileEntity
 
     private void doSmelt() {
         ItemStack input  = inventory.get(SLOT_INPUT);
-        ItemStack result = FurnaceRecipes.instance()
-                .getSmeltingResult(input).copy();
+        ItemStack result = getResonanceResult(input).copy();
         ItemStack output = inventory.get(SLOT_OUTPUT);
 
         if (output.isEmpty()) {
@@ -159,8 +246,29 @@ public class TileEntityResonanceFurnace extends TileEntity
         markDirty();
     }
 
+    /**
+     * Возвращает результат плавки:
+     * сначала проверяем особые рецепты Резонансной Печи,
+     * если нет — используем стандартные рецепты печи.
+     */
+    private ItemStack getResonanceResult(ItemStack input) {
+        if (input.isEmpty()) return ItemStack.EMPTY;
+
+        net.minecraft.item.Item inputItem = input.getItem();
+
+        // Особый рецепт Резонансной Печи
+        if (RESONANCE_RECIPES.containsKey(inputItem)) {
+            return new ItemStack(RESONANCE_RECIPES.get(inputItem), 1);
+        }
+
+        // Стандартный рецепт печи
+        return FurnaceRecipes.instance().getSmeltingResult(input);
+    }
+
     private void giveByproduct() {
-        if (random.nextFloat() > 0.30f) return;
+        // Базовый шанс побочки 30%, в полнолуние 60%
+        float chance = isFullMoon() ? 0.60f : 0.30f;
+        if (random.nextFloat() > chance) return;
 
         net.minecraft.item.Item[] crystals = {
                 ModItems.ETHER_CRYSTAL,
@@ -171,8 +279,15 @@ public class TileEntityResonanceFurnace extends TileEntity
                 ModItems.CRYSTAL_LUX
         };
 
-        net.minecraft.item.Item byproduct =
-                crystals[random.nextInt(crystals.length)];
+        // В полнолуние — более редкие кристаллы чаще
+        net.minecraft.item.Item byproduct;
+        if (isFullMoon()) {
+            // Umbra и Lux — редкие, выпадают чаще ночью
+            byproduct = crystals[3 + random.nextInt(3)]; // Volta, Umbra, Lux
+        } else {
+            byproduct = crystals[random.nextInt(crystals.length)];
+        }
+
         ItemStack byproductStack = new ItemStack(byproduct, 1);
         ItemStack current = inventory.get(SLOT_BYPRODUCT);
 
@@ -218,15 +333,12 @@ public class TileEntityResonanceFurnace extends TileEntity
         return etherStored * scale / MAX_ETHER;
     }
 
-    public boolean isSmelting() {
-        return smeltTime > 0;
-    }
+    public boolean isSmelting() { return smeltTime > 0; }
 
     // ═══════════════════════════════════════════
     //  IInventory
     // ═══════════════════════════════════════════
-    @Override
-    public int getSizeInventory() { return SIZE; }
+    @Override public int getSizeInventory() { return SIZE; }
 
     @Override
     public boolean isEmpty() {
@@ -237,9 +349,7 @@ public class TileEntityResonanceFurnace extends TileEntity
     }
 
     @Override
-    public ItemStack getStackInSlot(int index) {
-        return inventory.get(index);
-    }
+    public ItemStack getStackInSlot(int index) { return inventory.get(index); }
 
     @Override
     public ItemStack decrStackSize(int index, int count) {
@@ -271,30 +381,19 @@ public class TileEntityResonanceFurnace extends TileEntity
         markDirty();
     }
 
-    @Override
-    public int getInventoryStackLimit() { return 64; }
-
-    @Override
-    public boolean isUsableByPlayer(EntityPlayer player) { return true; }
-
-    @Override
-    public void openInventory(EntityPlayer player) {}
-
-    @Override
-    public void closeInventory(EntityPlayer player) {}
+    @Override public int getInventoryStackLimit()             { return 64; }
+    @Override public boolean isUsableByPlayer(EntityPlayer p) { return true; }
+    @Override public void openInventory(EntityPlayer player)  {}
+    @Override public void closeInventory(EntityPlayer player) {}
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack) {
         if (index == SLOT_INPUT) {
-            return !FurnaceRecipes.instance()
-                    .getSmeltingResult(stack).isEmpty();
+            return !getResonanceResult(stack).isEmpty();
         }
         return false;
     }
 
-    // ═══════════════════════════════════════════
-    //  Поля синхронизации — ВАЖНО для GUI
-    // ═══════════════════════════════════════════
     @Override
     public int getField(int id) {
         switch (id) {
@@ -312,24 +411,16 @@ public class TileEntityResonanceFurnace extends TileEntity
         }
     }
 
-    @Override
-    public int getFieldCount() { return FIELD_COUNT; }
+    @Override public int getFieldCount()  { return FIELD_COUNT; }
 
     @Override
     public void clear() {
-        for (int i = 0; i < SIZE; i++) {
-            inventory.set(i, ItemStack.EMPTY);
-        }
+        for (int i = 0; i < SIZE; i++) inventory.set(i, ItemStack.EMPTY);
     }
 
-    @Override
-    public String getName()         { return "resonance_furnace"; }
-
-    @Override
-    public boolean hasCustomName()  { return false; }
-
-    @Override
-    public ITextComponent getDisplayName() {
+    @Override public String getName()            { return "resonance_furnace"; }
+    @Override public boolean hasCustomName()     { return false; }
+    @Override public ITextComponent getDisplayName() {
         return new TextComponentString(getName());
     }
 
@@ -341,8 +432,9 @@ public class TileEntityResonanceFurnace extends TileEntity
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        compound.setInteger("EtherStored", etherStored);
-        compound.setInteger("SmeltTime",   smeltTime);
+        compound.setInteger("EtherStored",    etherStored);
+        compound.setInteger("SmeltTime",      smeltTime);
+        compound.setFloat  ("MoonMultiplier", moonMultiplier);
 
         for (int i = 0; i < SIZE; i++) {
             if (!inventory.get(i).isEmpty()) {
@@ -357,8 +449,10 @@ public class TileEntityResonanceFurnace extends TileEntity
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
-        etherStored = compound.getInteger("EtherStored");
-        smeltTime   = compound.getInteger("SmeltTime");
+        etherStored    = compound.getInteger("EtherStored");
+        smeltTime      = compound.getInteger("SmeltTime");
+        moonMultiplier = compound.hasKey("MoonMultiplier")
+                ? compound.getFloat("MoonMultiplier") : 1.0f;
 
         for (int i = 0; i < SIZE; i++) {
             if (compound.hasKey("Slot" + i)) {
@@ -379,14 +473,12 @@ public class TileEntityResonanceFurnace extends TileEntity
     @Override
     public net.minecraft.network.play.server.SPacketUpdateTileEntity getUpdatePacket() {
         return new net.minecraft.network.play.server.SPacketUpdateTileEntity(
-                pos, 2, getUpdateTag()
-        );
+                pos, 2, getUpdateTag());
     }
 
     @Override
-    public void onDataPacket(
-            net.minecraft.network.NetworkManager net,
-            net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
+    public void onDataPacket(net.minecraft.network.NetworkManager net,
+                             net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
     }
 }

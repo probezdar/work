@@ -60,6 +60,8 @@ public class EtherForge {
         proxy.init();
         ModWorldGen.register();
         LOGGER.info("Генерация мира зарегистрирована");
+        TileEntityResonanceFurnace.initResonanceRecipes();
+        LOGGER.info("Рецепты резонансной печи инициализированы");
         NetworkRegistry.INSTANCE.registerGuiHandler(
                 instance,
                 new ModGuiHandler()

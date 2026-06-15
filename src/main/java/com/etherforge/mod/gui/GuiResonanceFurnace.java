@@ -44,9 +44,9 @@ public class GuiResonanceFurnace extends GuiContainer {
         int arrowWidth = furnace.getSmeltProgressScaled(24);
         if (arrowWidth > 0) {
             drawTexturedModalRect(
-                    x + 70, y + 31,   /// ИСПРАВИТЬ////
+                    x + 78, y + 31,
                     176, 0,
-                    arrowWidth, 16
+                    arrowWidth+9, 16
             );
         }
 
@@ -55,12 +55,10 @@ public class GuiResonanceFurnace extends GuiContainer {
         if (etherHeight > 0) {
             drawTexturedModalRect(
                     x + 8, y + 18 + (52 - etherHeight),
-                    200, 52 - etherHeight,
+                    208, 55 - etherHeight,
                     12, etherHeight
             );
         }
-
-        // ── Анимация огня если плавит ─────────────────
     }
 
     @Override
@@ -107,6 +105,24 @@ public class GuiResonanceFurnace extends GuiContainer {
                 COLOR_HOT
         );
 
+        // Лунный множитель
+        String moonText;
+        int moonColor;
+
+        if (furnace.isFullMoon()) {
+            moonText  = "Full Moon! x2";
+            moonColor = 0xAA44FF;
+        } else if (furnace.getMoonMultiplier() > 1.0f) {
+            // Форматируем float до 1 знака после запятой
+            moonText  = "Night x" + String.format("%.1f", furnace.getMoonMultiplier());
+            moonColor = 0x8866CC;
+        } else {
+            moonText  = "Day x1.0";
+            moonColor = COLOR_LABEL;
+        }
+
+        fontRenderer.drawString("Moon:", statX+65, startY + 20 + lineH * 2, COLOR_LABEL);
+        fontRenderer.drawString(moonText, statX + 95, startY + 20 + lineH * 2, moonColor);
 
         // ── Инвентарь ─────────────────────────────────
         fontRenderer.drawString(
