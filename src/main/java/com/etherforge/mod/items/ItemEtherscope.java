@@ -25,11 +25,16 @@ public class ItemEtherscope extends Item {
 
     @Override
     public EnumActionResult onItemUseFirst(EntityPlayer player,
-                                           World world, BlockPos pos,
-                                           EnumFacing facing, float hitX,
-                                           float hitY, float hitZ,
+                                           World world,
+                                           BlockPos pos,
+                                           EnumFacing side,
+                                           float hitX,
+                                           float hitY,
+                                           float hitZ,
                                            EnumHand hand) {
-        if (world.isRemote) return EnumActionResult.PASS;
+        if (world.isRemote) {
+            return EnumActionResult.PASS;
+        }
 
         IBlockState state = world.getBlockState(pos);
 
@@ -37,49 +42,28 @@ public class ItemEtherscope extends Item {
             return EnumActionResult.PASS;
         }
 
-        BlockEtherWorkbench.WorkbenchPart part = state.getValue(BlockEtherWorkbench.PART);
-        boolean isActive = state.getValue(BlockEtherWorkbench.ACTIVE);
-
-        if (isActive) {
+        if (state.getValue(BlockEtherWorkbench.ACTIVE)) {
             player.sendMessage(new TextComponentString(
-                    "§5Верстак уже активирован."));
+                    "§5Эфирный Верстак уже активирован."
+            ));
             return EnumActionResult.SUCCESS;
         }
 
-        // Найти мастер-блок
-        BlockPos masterPos = BlockEtherWorkbench.getMasterPos(world, pos, state);
-        if (masterPos == null) {
-            player.sendMessage(new TextComponentString(
-                    "§cНе удалось определить мастер-блок."));
-            return EnumActionResult.FAIL;
-        }
+        /*
+         * Направление конструкции берём по взгляду игрока.
+         * getHorizontalFacing() — куда смотрит игрок.
+         * getOpposite() — чтобы лицевая сторона верстака смотрела на игрока.
+         */
+        EnumFacing workbenchFacing = player.getHorizontalFacing().getOpposite();
 
-        IBlockState masterState = world.getBlockState(masterPos);
-        EnumFacing workbenchFacing = masterState.getValue(BlockEtherWorkbench.FACING);
+        boolean success = BlockEtherWorkbench.tryActivateFromEtherscope(
+                world,
+                pos,
+                workbenchFacing,
+                player
+        );
 
-        // Проверяем полноту мультиблока
-        if (BlockEtherWorkbench.isComplete(world, masterPos, workbenchFacing)) {
-            // Активируем
-            BlockEtherWorkbench.activate(world, masterPos, workbenchFacing);
-            player.sendMessage(new TextComponentString(
-                    "§dЭфирный Верстак активирован!"));
-
-            // Частицы
-            world.spawnParticle(
-                    net.minecraft.util.EnumParticleTypes.SPELL_MOB,
-                    masterPos.getX() + 1.0,
-                    masterPos.getY() + 1.5,
-                    masterPos.getZ() + 1.0,
-                    0.5, 0.3, 0.9, 20
-            );
-        } else {
-            player.sendMessage(new TextComponentString(
-                    "§cМультиблок неполный. Расставь 4 блока верстака квадратом 2x2."));
-            // Подсветить какие блоки есть (отладка)
-            highlightMissing(world, masterPos, workbenchFacing, player);
-        }
-
-        return EnumActionResult.SUCCESS;
+        return success ? EnumActionResult.SUCCESS : EnumActionResult.FAIL;
     }
 
     private void highlightMissing(World world, BlockPos masterPos,

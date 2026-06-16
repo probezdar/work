@@ -180,6 +180,133 @@ public class BlockEtherWorkbench extends Block {
                 && isWorkbenchPart(world, br,         WorkbenchPart.BR, facing);
     }
 
+    public static boolean tryActivateFromEtherscope(World world,
+                                                    BlockPos clickedPos,
+                                                    EnumFacing facing,
+                                                    EntityPlayer player) {
+        if (world.isRemote) return false;
+
+        EnumFacing right = facing.rotateY();
+
+        /*
+         * Относительно masterPos:
+         *
+         * TL = masterPos
+         * TR = masterPos + right
+         * BL = masterPos + facing.opposite
+         * BR = masterPos + right + facing.opposite
+         *
+         * Но игрок может кликнуть по любому из 4 блоков.
+         * Поэтому пробуем 4 возможных masterPos.
+         */
+
+        BlockPos[] possibleMasters = new BlockPos[] {
+                clickedPos,                                            // кликнули по TL
+                clickedPos.offset(right.getOpposite()),                // кликнули по TR
+                clickedPos.offset(facing),                             // кликнули по BL
+                clickedPos.offset(right.getOpposite()).offset(facing)  // кликнули по BR
+        };
+
+        for (BlockPos masterPos : possibleMasters) {
+            if (canFormAt(world, masterPos, facing)) {
+                formAt(world, masterPos, facing);
+
+                player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                        "§dЭфирный Верстак собран."
+                ));
+
+                world.playSound(
+                        null,
+                        masterPos,
+                        net.minecraft.util.SoundEvent.REGISTRY.getObject(
+                                new net.minecraft.util.ResourceLocation(
+                                        "block.enchantment_table.use"
+                                )
+                        ),
+                        net.minecraft.util.SoundCategory.BLOCKS,
+                        1.0f,
+                        0.8f
+                );
+
+                return true;
+            }
+        }
+
+        player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                "§cМультиблок неполный. Нужно поставить 4 блока верстака квадратом 2x2."
+        ));
+
+        player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                "§7Подсказка: смотри на конструкцию с той стороны, где должен быть перед верстака, и нажми эфироскопом."
+        ));
+
+        return false;
+    }
+
+    private static boolean canFormAt(World world,
+                                     BlockPos masterPos,
+                                     EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
+
+        BlockPos tl = masterPos;
+        BlockPos tr = masterPos.offset(right);
+        BlockPos bl = masterPos.offset(facing.getOpposite());
+        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
+
+        return isAnyWorkbench(world, tl)
+                && isAnyWorkbench(world, tr)
+                && isAnyWorkbench(world, bl)
+                && isAnyWorkbench(world, br);
+    }
+
+    private static boolean isAnyWorkbench(World world, BlockPos pos) {
+        IBlockState state = world.getBlockState(pos);
+        return state.getBlock() instanceof BlockEtherWorkbench;
+    }
+
+    private static void formAt(World world,
+                               BlockPos masterPos,
+                               EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
+
+        BlockPos tl = masterPos;
+        BlockPos tr = masterPos.offset(right);
+        BlockPos bl = masterPos.offset(facing.getOpposite());
+        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
+
+        BlockEtherWorkbench block = (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
+
+        world.setBlockState(tl, block.getDefaultState()
+                .withProperty(PART, WorkbenchPart.TL)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 3);
+
+        world.setBlockState(tr, block.getDefaultState()
+                .withProperty(PART, WorkbenchPart.TR)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 3);
+
+        world.setBlockState(bl, block.getDefaultState()
+                .withProperty(PART, WorkbenchPart.BL)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 3);
+
+        world.setBlockState(br, block.getDefaultState()
+                .withProperty(PART, WorkbenchPart.BR)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 3);
+
+        // На всякий случай гарантируем TileEntity у мастер-блока
+        if (!(world.getTileEntity(tl) instanceof TileEntityEtherWorkbench)) {
+            world.setTileEntity(tl, new TileEntityEtherWorkbench());
+        }
+
+        world.notifyBlockUpdate(tl, world.getBlockState(tl), world.getBlockState(tl), 3);
+        world.notifyBlockUpdate(tr, world.getBlockState(tr), world.getBlockState(tr), 3);
+        world.notifyBlockUpdate(bl, world.getBlockState(bl), world.getBlockState(bl), 3);
+        world.notifyBlockUpdate(br, world.getBlockState(br), world.getBlockState(br), 3);
+    }
+
     private static boolean isWorkbenchPart(World world, BlockPos pos,
                                            WorkbenchPart part,
                                            EnumFacing facing) {
