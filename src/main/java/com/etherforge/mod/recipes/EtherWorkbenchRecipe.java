@@ -34,7 +34,9 @@ public class EtherWorkbenchRecipe {
             ItemStack req = catalysts.get(i);
             if (req.isEmpty() && inSlot.isEmpty()) continue;
             if (req.isEmpty() || inSlot.isEmpty()) return false;
-            if (!req.isItemEqual(inSlot)) return false;
+            if (req.getItem() != inSlot.getItem()) return false;
+// Проверяем что катализатор не сломан (damage < maxDamage)
+            if (inSlot.getItemDamage() >= inSlot.getMaxDamage()) return false;
         }
         return true;
     }

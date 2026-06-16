@@ -48,6 +48,9 @@ public class ClientProxy extends CommonProxy {
         registerBlockModel(ModBlocks.ETHER_CONDENSER, "ether_condenser");
         registerBlockModel(ModBlocks.RESONANCE_FURNACE, "resonance_furnace");
         registerBlockModel(ModBlocks.ETHER_WORKBENCH, "ether_workbench");
+        registerBlockModel(ModBlocks.ETHER_PIPE,            "ether_pipe");
+        registerBlockModel(ModBlocks.ETHER_PIPE_REINFORCED, "ether_pipe_reinforced");
+        registerBlockModel(ModBlocks.ETHER_PIPE_RESONANT,   "ether_pipe_resonant");
     }
 
     // Явно указываем имя без автоматического getRegistryName()

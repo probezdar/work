@@ -1,0 +1,31 @@
+{
+  "multipart": [
+    {
+      "apply": { "model": "etherforge:pipe/pipe_core_reinforced" }
+    },
+    {
+      "when": { "south": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced" }
+    },
+    {
+      "when": { "north": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced", "y": 180 }
+    },
+    {
+      "when": { "east": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced", "y": 270 }
+    },
+    {
+      "when": { "west": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced", "y": 90 }
+    },
+    {
+      "when": { "up": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced", "x": 270 }
+    },
+    {
+      "when": { "down": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_reinforced", "x": 90 }
+    }
+  ]
+}

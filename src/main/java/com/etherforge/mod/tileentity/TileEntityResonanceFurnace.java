@@ -1,6 +1,7 @@
 package com.etherforge.mod.tileentity;
 
 import com.etherforge.mod.init.ModItems;
+import com.etherforge.mod.util.IEtherReceiver;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.Random;
 
 public class TileEntityResonanceFurnace extends TileEntity
-        implements ITickable, IInventory {
+        implements ITickable, IInventory, IEtherReceiver {
 
     // ═══════════════════════════════════════════
     //  Константы
@@ -297,6 +298,17 @@ public class TileEntityResonanceFurnace extends TileEntity
                 && current.getCount() < current.getMaxStackSize()) {
             current.grow(1);
         }
+    }
+
+    @Override
+    public int receiveEther(int amount, boolean simulate) {
+        int space    = MAX_ETHER - etherStored;
+        int received = Math.min(space, amount);
+        if (!simulate) {
+            etherStored += received;
+            markDirty();
+        }
+        return received;
     }
 
     // ═══════════════════════════════════════════

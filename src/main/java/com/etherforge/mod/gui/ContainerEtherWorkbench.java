@@ -1,5 +1,6 @@
 package com.etherforge.mod.gui;
 
+import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -11,26 +12,44 @@ public class ContainerEtherWorkbench extends Container {
 
     private final TileEntityEtherWorkbench workbench;
 
+    // Границы слотов для transferStackInSlot
+    private static final int SLOT_GRID_START     = 0;  // 0-3   сетка
+    private static final int SLOT_CATALYST_START = 4;  // 4-7   катализаторы
+    private static final int SLOT_OUTPUT         = 8;  // 8     результат
+    private static final int SLOT_INV_START      = 9;  // 9-35  инвентарь
+    private static final int SLOT_HOTBAR_START   = 36; // 36-44 хотбар
+    private static final int SLOT_TOTAL          = 45;
+
     public ContainerEtherWorkbench(InventoryPlayer playerInv,
                                    TileEntityEtherWorkbench workbench) {
         this.workbench = workbench;
 
-        // Сетка 2x2: слоты 0-3
+        // ── Сетка 2x2: слоты 0-3 ────────────────────
         addSlotToContainer(new Slot(workbench, 0, 76, 36));
         addSlotToContainer(new Slot(workbench, 1, 94, 36));
         addSlotToContainer(new Slot(workbench, 2, 76, 54));
         addSlotToContainer(new Slot(workbench, 3, 94, 54));
 
-        // Катализаторы: слоты 4-7 (слева, сверху, справа, снизу)
-        addSlotToContainer(new Slot(workbench, 4, 58, 45));
-        addSlotToContainer(new Slot(workbench, 5, 85, 18));
-        addSlotToContainer(new Slot(workbench, 6, 112, 45));
-        addSlotToContainer(new Slot(workbench, 7, 85, 72));
+        // ── Катализаторы: слоты 4-7 ─────────────────
+        // Только предметы с isCatalyst()
+        for (int i = 4; i < 8; i++) {
+            final int slotIndex = i;
+            addSlotToContainer(new Slot(workbench, slotIndex,
+                    getCatalystX(slotIndex), getCatalystY(slotIndex)) {
 
-        // Результат: слот 8
-        addSlotToContainer(new Slot(workbench, 8, 148, 45) {
+                @Override
+                public boolean isItemValid(ItemStack stack) {
+                    return isCatalyst(stack);
+                }
+            });
+        }
+
+        // ── Результат: слот 8 ────────────────────────
+        addSlotToContainer(new Slot(workbench, SLOT_OUTPUT, 148, 45) {
             @Override
-            public boolean isItemValid(ItemStack stack) { return false; }
+            public boolean isItemValid(ItemStack stack) {
+                return false; // нельзя класть вручную
+            }
 
             @Override
             public ItemStack onTake(EntityPlayer player, ItemStack stack) {
@@ -39,7 +58,7 @@ public class ContainerEtherWorkbench extends Container {
             }
         });
 
-        // Инвентарь игрока
+        // ── Инвентарь игрока: слоты 9-35 ────────────
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlotToContainer(new Slot(playerInv,
@@ -47,13 +66,55 @@ public class ContainerEtherWorkbench extends Container {
                         8 + col * 18, 102 + row * 18));
             }
         }
-        // Хотбар
+
+        // ── Хотбар: слоты 36-44 ──────────────────────
         for (int col = 0; col < 9; col++) {
             addSlotToContainer(new Slot(playerInv, col,
                     8 + col * 18, 160));
         }
     }
 
+    // ═══════════════════════════════════════════
+    //  Позиции катализаторов
+    // ═══════════════════════════════════════════
+    private int getCatalystX(int slot) {
+        switch (slot) {
+            case 4: return 58;  // лево
+            case 5: return 85;  // верх
+            case 6: return 112; // право
+            case 7: return 85;  // низ
+            default: return 0;
+        }
+    }
+
+    private int getCatalystY(int slot) {
+        switch (slot) {
+            case 4: return 45;
+            case 5: return 18;
+            case 6: return 45;
+            case 7: return 72;
+            default: return 0;
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    //  Проверка катализатора
+    // ═══════════════════════════════════════════
+    private boolean isCatalyst(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        return stack.getItem() == ModItems.CATALYST_STEAM
+                || stack.getItem() == ModItems.CATALYST_PLASMA
+                || stack.getItem() == ModItems.CATALYST_DAWN
+                || stack.getItem() == ModItems.CATALYST_SURGE
+                || stack.getItem() == ModItems.CATALYST_DEPTH
+                || stack.getItem() == ModItems.CATALYST_SPARK
+                || stack.getItem() == ModItems.CATALYST_ECLIPSE
+                || stack.getItem() == ModItems.CATALYST_EMBER;
+    }
+
+    // ═══════════════════════════════════════════
+    //  Shift + клик
+    // ═══════════════════════════════════════════
     @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int index) {
         ItemStack copy = ItemStack.EMPTY;
@@ -63,17 +124,51 @@ public class ContainerEtherWorkbench extends Container {
         ItemStack stack = slot.getStack();
         copy = stack.copy();
 
-        if (index == 8) { // результат
-            if (!mergeItemStack(stack, 9, 45, true)) return ItemStack.EMPTY;
+        if (index == SLOT_OUTPUT) {
+            // Результат → инвентарь (с конца)
+            if (!mergeItemStack(stack, SLOT_INV_START, SLOT_TOTAL, true)) {
+                return ItemStack.EMPTY;
+            }
             slot.onSlotChange(stack, copy);
-        } else if (index < 8) { // верстак
-            if (!mergeItemStack(stack, 9, 45, true)) return ItemStack.EMPTY;
-        } else { // инвентарь игрока
-            if (!mergeItemStack(stack, 0, 8, false)) return ItemStack.EMPTY;
+
+        } else if (index >= SLOT_INV_START) {
+            // Из инвентаря/хотбара
+            if (isCatalyst(stack)) {
+                // Катализатор → слоты 4-7
+                if (!mergeItemStack(stack,
+                        SLOT_CATALYST_START,
+                        SLOT_OUTPUT,
+                        false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else {
+                // Остальное → сетка 0-3
+                if (!mergeItemStack(stack,
+                        SLOT_GRID_START,
+                        SLOT_CATALYST_START,
+                        false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+
+        } else if (index < SLOT_CATALYST_START) {
+            // Из сетки → инвентарь
+            if (!mergeItemStack(stack, SLOT_INV_START, SLOT_TOTAL, true)) {
+                return ItemStack.EMPTY;
+            }
+
+        } else if (index < SLOT_OUTPUT) {
+            // Из катализаторов → инвентарь
+            if (!mergeItemStack(stack, SLOT_INV_START, SLOT_TOTAL, true)) {
+                return ItemStack.EMPTY;
+            }
         }
 
-        if (stack.isEmpty()) slot.putStack(ItemStack.EMPTY);
-        else slot.onSlotChanged();
+        if (stack.isEmpty()) {
+            slot.putStack(ItemStack.EMPTY);
+        } else {
+            slot.onSlotChanged();
+        }
 
         if (stack.getCount() == copy.getCount()) return ItemStack.EMPTY;
         slot.onTake(player, stack);
@@ -81,5 +176,7 @@ public class ContainerEtherWorkbench extends Container {
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer player) { return true; }
+    public boolean canInteractWith(EntityPlayer player) {
+        return true;
+    }
 }

@@ -6,6 +6,7 @@ import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.proxy.CommonProxy;
 import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
 import com.etherforge.mod.tileentity.TileEntityEtherCondenser;
+import com.etherforge.mod.tileentity.TileEntityEtherPipe;
 import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
 import com.etherforge.mod.util.Reference;
@@ -55,6 +56,11 @@ public class EtherForge {
         GameRegistry.registerTileEntity(
                 TileEntityEtherWorkbench.class,
                 Reference.MOD_ID + ":ether_workbench"
+        );
+
+        GameRegistry.registerTileEntity(
+                TileEntityEtherPipe.class,
+                Reference.MOD_ID + ":ether_pipe"
         );
         LOGGER.info("TileEntity зарегистрированы");
         LOGGER.info("EtherForge - PreInit завершён");

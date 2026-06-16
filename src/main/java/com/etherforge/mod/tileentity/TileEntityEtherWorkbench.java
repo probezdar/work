@@ -1,24 +1,74 @@
 package com.etherforge.mod.tileentity;
 
+import com.etherforge.mod.blocks.BlockEtherWorkbench;
 import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.World;
 
-public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
+import static com.etherforge.mod.blocks.BlockEtherWorkbench.canFormAt;
+import static com.etherforge.mod.blocks.BlockEtherWorkbench.canFormSilent;
+
+public class TileEntityEtherWorkbench extends TileEntity implements IInventory, ITickable {
 
     public static final int GRID_SIZE = 4;
     public static final int CATALYST_SLOTS = 4;
     public static final int OUTPUT_SLOT = 8;
     public static final int TOTAL_SLOTS = 9;
+    private boolean active = false;
+    private EnumFacing facing = EnumFacing.NORTH;
+    private boolean needsRestore = false;
+    public boolean isActive() { return active; }
+    public net.minecraft.util.EnumFacing getActiveFacing() { return facing; }
+
+    @Override
+    public void onLoad() {
+        // Вызывается после readFromNBT когда чанк загружен
+        // Откладываем на следующий тик чтобы мир был готов
+        if (!world.isRemote && active) {
+            // Планируем восстановление через ITickable
+            needsRestore = true;
+        }
+    }
+
+    private void restoreMultiblock() {
+        if (!active || world == null || world.isRemote) return;
+
+        BlockPos masterPos = pos;
+        IBlockState state  = world.getBlockState(masterPos);
+
+        if (!(state.getBlock() instanceof BlockEtherWorkbench)) return;
+
+        // Проверяем что все 4 блока на месте
+        if (!BlockEtherWorkbench.canFormSilent(world, masterPos, facing)) {
+            // Блоки снесли пока мы были оффлайн
+            active = false;
+            markDirty();
+            return;
+        }
+
+        BlockEtherWorkbench.formAt_silent(world, masterPos, facing);
+    }
 
     private NonNullList<ItemStack> inventory =
             NonNullList.withSize(TOTAL_SLOTS, ItemStack.EMPTY);
+
+    public void setActiveData(boolean active,
+                              net.minecraft.util.EnumFacing facing) {
+        this.active = active;
+        this.facing = facing;
+        markDirty();
+    }
 
     // ═══════════════════════════════════════════
     //  Крафт-логика
@@ -50,6 +100,8 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
         updateCraftingResult();
         markDirty();
     }
+
+
 
     // ═══════════════════════════════════════════
     //  IInventory
@@ -128,6 +180,8 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
+        compound.setBoolean("Active", active);
+        compound.setInteger("Facing", facing.getIndex());
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             if (!inventory.get(i).isEmpty()) {
                 NBTTagCompound tag = new NBTTagCompound();
@@ -141,6 +195,9 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
     @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
+        active = compound.getBoolean("Active");
+        int facingIndex = compound.getInteger("Facing");
+        facing = EnumFacing.getFront(facingIndex);
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             if (compound.hasKey("Slot" + i)) {
                 inventory.set(i, new ItemStack(compound.getCompoundTag("Slot" + i)));
@@ -158,5 +215,14 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
     public void onDataPacket(net.minecraft.network.NetworkManager net,
                              net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
+    }
+
+
+    @Override
+    public void update() {
+        if (needsRestore) {
+            needsRestore = false;
+            restoreMultiblock();
+        }
     }
 }

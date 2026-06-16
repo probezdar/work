@@ -1,0 +1,31 @@
+{
+  "multipart": [
+    {
+      "apply": { "model": "etherforge:pipe/pipe_core_resonant" }
+    },
+    {
+      "when": { "south": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant" }
+    },
+    {
+      "when": { "north": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant", "y": 180 }
+    },
+    {
+      "when": { "east": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant", "y": 270 }
+    },
+    {
+      "when": { "west": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant", "y": 90 }
+    },
+    {
+      "when": { "up": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant", "x": 270 }
+    },
+    {
+      "when": { "down": "true" },
+      "apply": { "model": "etherforge:pipe/pipe_arm_resonant", "x": 90 }
+    }
+  ]
+}

@@ -2,6 +2,9 @@ package com.etherforge.mod.init;
 
 import com.etherforge.mod.EtherForge;
 import com.etherforge.mod.blocks.*;
+import com.etherforge.mod.blocks.pipe.BlockEtherPipe;
+import com.etherforge.mod.blocks.pipe.BlockEtherPipeReinforced;
+import com.etherforge.mod.blocks.pipe.BlockEtherPipeResonant;
 import com.etherforge.mod.util.Reference;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -21,6 +24,9 @@ public class ModBlocks {
     public static Block ETHER_CONDENSER;
     public static Block RESONANCE_FURNACE;
     public static Block ETHER_WORKBENCH;
+    public static Block ETHER_PIPE;
+    public static Block ETHER_PIPE_REINFORCED;
+    public static Block ETHER_PIPE_RESONANT;
 
     @SubscribeEvent
     public static void onRegisterBlocks(RegistryEvent.Register<Block> event) {
@@ -65,6 +71,22 @@ public class ModBlocks {
                 .setUnlocalizedName(Reference.MOD_ID + ".ether_workbench")
                 .setCreativeTab(ModCreativeTab.INSTANCE);
 
+        ETHER_PIPE = new BlockEtherPipe(20, 100)
+                .setRegistryName(Reference.MOD_ID, "ether_pipe")
+                .setUnlocalizedName(Reference.MOD_ID + ".ether_pipe")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
+        ETHER_PIPE_REINFORCED = new BlockEtherPipeReinforced()
+                .setRegistryName(Reference.MOD_ID, "ether_pipe_reinforced")
+                .setUnlocalizedName(Reference.MOD_ID + ".ether_pipe_reinforced")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
+        ETHER_PIPE_RESONANT = new BlockEtherPipeResonant()
+                .setRegistryName(Reference.MOD_ID, "ether_pipe_resonant")
+                .setUnlocalizedName(Reference.MOD_ID + ".ether_pipe_resonant")
+                .setCreativeTab(ModCreativeTab.INSTANCE);
+
+
 
         registry.registerAll(
                 ETHER_ORE,
@@ -73,7 +95,8 @@ public class ModBlocks {
                 ETHER_BLOCK,
                 ETHER_CONDENSER,
                 RESONANCE_FURNACE,
-                ETHER_WORKBENCH
+                ETHER_WORKBENCH,
+                ETHER_PIPE,ETHER_PIPE_REINFORCED,ETHER_PIPE_RESONANT
         );
 
         EtherForge.LOGGER.info("Блоки зарегистрированы");
@@ -82,7 +105,9 @@ public class ModBlocks {
     @SubscribeEvent
     public static void onRegisterItemBlocks(RegistryEvent.Register<net.minecraft.item.Item> event) {
         Block[] blocks = {
-                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK, ETHER_CONDENSER, RESONANCE_FURNACE, ETHER_WORKBENCH
+                ETHER_ORE, ETHER_ORE_IGNIS, ETHER_ORE_UMBRA, ETHER_BLOCK, ETHER_CONDENSER,
+                RESONANCE_FURNACE, ETHER_WORKBENCH, ETHER_PIPE, ETHER_PIPE_REINFORCED, ETHER_PIPE_RESONANT
+
         };
 
         IForgeRegistry<net.minecraft.item.Item> registry = event.getRegistry();

@@ -91,7 +91,8 @@ public class ModItems {
                 .setRegistryName(Reference.MOD_ID, name)
                 .setUnlocalizedName(Reference.MOD_ID + "." + name)
                 .setCreativeTab(ModCreativeTab.INSTANCE)
-                .setMaxDamage(64)   // 64 использования
+                .setMaxDamage(16)   // 64 использования
+                .setMaxStackSize(1)
                 .setNoRepair();
     }
 

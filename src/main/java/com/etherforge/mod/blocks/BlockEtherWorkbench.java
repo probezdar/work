@@ -72,6 +72,12 @@ public class BlockEtherWorkbench extends Block {
         return state.getValue(PART).ordinal();
     }
 
+    public static boolean canFormSilent(World world,
+                                        BlockPos masterPos,
+                                        EnumFacing facing) {
+        return canFormAt(world, masterPos, facing); // canFormAt уже private — сделай его package-private
+    }
+
     @Override
     public boolean isOpaqueCube(IBlockState state) { return false; }
 
@@ -165,6 +171,64 @@ public class BlockEtherWorkbench extends Block {
     }
 
     // ═══════════════════════════════════════════
+//  formAt_silent — тишина (без звука)
+// ═══════════════════════════════════════════
+    public static void formAt_silent(World world,
+                                     BlockPos masterPos,
+                                     EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
+
+        BlockPos tl = masterPos;
+        BlockPos tr = masterPos.offset(right);
+        BlockPos bl = masterPos.offset(facing.getOpposite());
+        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
+
+        // Проверяем что все 4 блока на месте
+        if (!canFormAt(world, masterPos, facing)) return;
+
+        BlockEtherWorkbench block =
+                (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
+
+        // Флаг 2 = без отправки пакетов клиенту сразу (экономим трафик при загрузке чанка)
+        world.setBlockState(tl, block.getDefaultState()
+                .withProperty(PART,   WorkbenchPart.TL)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 2);
+
+        world.setBlockState(tr, block.getDefaultState()
+                .withProperty(PART,   WorkbenchPart.TR)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 2);
+
+        world.setBlockState(bl, block.getDefaultState()
+                .withProperty(PART,   WorkbenchPart.BL)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 2);
+
+        world.setBlockState(br, block.getDefaultState()
+                .withProperty(PART,   WorkbenchPart.BR)
+                .withProperty(FACING, facing)
+                .withProperty(ACTIVE, true), 2);
+
+        // Привязываем TE к мастеру и сохраняем данные
+        ensureMasterTE(world, tl, facing);
+    }
+
+    // ═══════════════════════════════════════════
+//  Обновляем formAt чтобы тоже сохранял в TE
+// ═══════════════════════════════════════════
+    private static void ensureMasterTE(World world,
+                                       BlockPos masterPos,
+                                       EnumFacing facing) {
+        if (!(world.getTileEntity(masterPos) instanceof TileEntityEtherWorkbench)) {
+            world.setTileEntity(masterPos, new TileEntityEtherWorkbench());
+        }
+        TileEntityEtherWorkbench te =
+                (TileEntityEtherWorkbench) world.getTileEntity(masterPos);
+        te.setActiveData(true, facing);
+    }
+
+    // ═══════════════════════════════════════════
     //  Проверка полного мультиблока
     // ═══════════════════════════════════════════
     public static boolean isComplete(World world, BlockPos masterPos,
@@ -243,7 +307,7 @@ public class BlockEtherWorkbench extends Block {
         return false;
     }
 
-    private static boolean canFormAt(World world,
+    public static boolean canFormAt(World world,
                                      BlockPos masterPos,
                                      EnumFacing facing) {
         EnumFacing right = facing.rotateY();
@@ -296,15 +360,17 @@ public class BlockEtherWorkbench extends Block {
                 .withProperty(FACING, facing)
                 .withProperty(ACTIVE, true), 3);
 
-        // На всякий случай гарантируем TileEntity у мастер-блока
-        if (!(world.getTileEntity(tl) instanceof TileEntityEtherWorkbench)) {
-            world.setTileEntity(tl, new TileEntityEtherWorkbench());
-        }
+        ensureMasterTE(world, tl, facing);
 
         world.notifyBlockUpdate(tl, world.getBlockState(tl), world.getBlockState(tl), 3);
         world.notifyBlockUpdate(tr, world.getBlockState(tr), world.getBlockState(tr), 3);
         world.notifyBlockUpdate(bl, world.getBlockState(bl), world.getBlockState(bl), 3);
         world.notifyBlockUpdate(br, world.getBlockState(br), world.getBlockState(br), 3);
+
+        TileEntity te = world.getTileEntity(masterPos);
+        if (te instanceof TileEntityEtherWorkbench) {
+            ((TileEntityEtherWorkbench) te).setActiveData(true, facing);
+        }
     }
 
     private static boolean isWorkbenchPart(World world, BlockPos pos,

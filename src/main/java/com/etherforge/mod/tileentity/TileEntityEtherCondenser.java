@@ -1,13 +1,14 @@
 package com.etherforge.mod.tileentity;
 
 import com.etherforge.mod.init.ModBlocks;
+import com.etherforge.mod.util.IEtherReceiver;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
-public class TileEntityEtherCondenser extends TileEntity implements ITickable {
+public class TileEntityEtherCondenser extends TileEntity implements ITickable, IEtherReceiver {
 
     // ═══════════════════════════════════════════
     //  Константы
@@ -91,6 +92,17 @@ public class TileEntityEtherCondenser extends TileEntity implements ITickable {
         }
 
         return Math.min(rate, 100); // максимум 100/сек
+    }
+
+    @Override
+    public int receiveEther(int amount, boolean simulate) {
+        int space    = MAX_ETHER - etherStored;
+        int received = Math.min(space, amount);
+        if (!simulate) {
+            etherStored += received;
+            markDirty();
+        }
+        return received;
     }
 
     // ═══════════════════════════════════════════
