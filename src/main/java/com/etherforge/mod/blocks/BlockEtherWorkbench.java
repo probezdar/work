@@ -2,6 +2,7 @@ package com.etherforge.mod.blocks;
 
 import com.etherforge.mod.EtherForge;
 import com.etherforge.mod.gui.ModGuiHandler;
+import com.etherforge.mod.items.ItemEtherscope;
 import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -13,6 +14,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
@@ -129,12 +131,24 @@ public class BlockEtherWorkbench extends Block {
                                     EnumHand hand, EnumFacing facing,
                                     float hitX, float hitY, float hitZ) {
 
-        // Эфироскоп обрабатывается в ItemEtherscope
+        // Эфироскоп — обрабатывается в ItemEtherscope
+        Item heldItem = player.getHeldItem(hand).getItem();
+        if (heldItem instanceof ItemEtherscope) {
+            return false; // пусть ItemEtherscope.onItemUseFirst обработает
+        }
+
         if (!world.isRemote) {
-            if (state.getValue(ACTIVE)) {
-                // Найти мастер-блок
-                BlockPos masterPos = getMasterPos(world, pos, state);
-                if (masterPos != null) {
+            if (!state.getValue(ACTIVE)) {
+                player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                        "§5Верстак не активирован. Используй Эфироскоп."));
+                return true;
+            }
+
+            // Найти мастер-блок и открыть GUI
+            BlockPos masterPos = getMasterPos(world, pos, state);
+            if (masterPos != null) {
+                TileEntity te = world.getTileEntity(masterPos);
+                if (te instanceof TileEntityEtherWorkbench) {
                     player.openGui(EtherForge.instance,
                             ModGuiHandler.GUI_WORKBENCH,
                             world,
@@ -142,9 +156,6 @@ public class BlockEtherWorkbench extends Block {
                             masterPos.getY(),
                             masterPos.getZ());
                 }
-            } else {
-                player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                        "§5Верстак не активирован. Используй Эфироскоп."));
             }
         }
         return true;
@@ -183,34 +194,32 @@ public class BlockEtherWorkbench extends Block {
         BlockPos bl = masterPos.offset(facing.getOpposite());
         BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
 
-        // Проверяем что все 4 блока на месте
         if (!canFormAt(world, masterPos, facing)) return;
 
         BlockEtherWorkbench block =
                 (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
 
-        // Флаг 2 = без отправки пакетов клиенту сразу (экономим трафик при загрузке чанка)
+        // Флаг 3 = обновить И отправить клиенту (исправлено с 2 на 3)
         world.setBlockState(tl, block.getDefaultState()
                 .withProperty(PART,   WorkbenchPart.TL)
                 .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 2);
+                .withProperty(ACTIVE, true), 3);
 
         world.setBlockState(tr, block.getDefaultState()
                 .withProperty(PART,   WorkbenchPart.TR)
                 .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 2);
+                .withProperty(ACTIVE, true), 3);
 
         world.setBlockState(bl, block.getDefaultState()
                 .withProperty(PART,   WorkbenchPart.BL)
                 .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 2);
+                .withProperty(ACTIVE, true), 3);
 
         world.setBlockState(br, block.getDefaultState()
                 .withProperty(PART,   WorkbenchPart.BR)
                 .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 2);
+                .withProperty(ACTIVE, true), 3);
 
-        // Привязываем TE к мастеру и сохраняем данные
         ensureMasterTE(world, tl, facing);
     }
 

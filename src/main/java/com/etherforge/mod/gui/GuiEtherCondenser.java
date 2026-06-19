@@ -116,8 +116,8 @@ public class GuiEtherCondenser extends GuiContainer {
         );
 
         // Скорость
-        boolean isNight = !condenser.getWorld().isDaytime();
-        int rate = condenser.getEtherPerTick() * (isNight ? 2 : 1);
+        int rate = condenser.getEffectiveRate();
+        boolean isNight = rate > condenser.getEtherPerTick();
 
         fontRenderer.drawString(
                 "Rate:",
@@ -129,7 +129,6 @@ public class GuiEtherCondenser extends GuiContainer {
                 statX + 40, startY + lineH * 3,
                 isNight ? COLOR_NIGHT : COLOR_RATE
         );
-
         // Ночной бонус
         fontRenderer.drawString(
                 "Bonus:",

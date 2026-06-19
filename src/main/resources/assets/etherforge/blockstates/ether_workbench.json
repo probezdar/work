@@ -5,42 +5,39 @@
     "active=false,facing=north,part=bl": { "model": "etherforge:ether_workbench_bl" },
     "active=false,facing=north,part=br": { "model": "etherforge:ether_workbench_br" },
 
-    "active=true,facing=north,part=tl": { "model": "etherforge:ether_workbench_tl" },
-    "active=true,facing=north,part=tr": { "model": "etherforge:ether_workbench_tr" },
-    "active=true,facing=north,part=bl": { "model": "etherforge:ether_workbench_bl" },
-    "active=true,facing=north,part=br": { "model": "etherforge:ether_workbench_br" },
-
+    "active=true,facing=north,part=tl":  { "model": "etherforge:ether_workbench_tl" },
+    "active=true,facing=north,part=tr":  { "model": "etherforge:ether_workbench_tr" },
+    "active=true,facing=north,part=bl":  { "model": "etherforge:ether_workbench_bl" },
+    "active=true,facing=north,part=br":  { "model": "etherforge:ether_workbench_br" },
 
     "active=false,facing=south,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 180 },
     "active=false,facing=south,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 180 },
     "active=false,facing=south,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 180 },
     "active=false,facing=south,part=br": { "model": "etherforge:ether_workbench_br", "y": 180 },
 
-    "active=true,facing=south,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 180 },
-    "active=true,facing=south,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 180 },
-    "active=true,facing=south,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 180 },
-    "active=true,facing=south,part=br": { "model": "etherforge:ether_workbench_br", "y": 180 },
+    "active=true,facing=south,part=tl":  { "model": "etherforge:ether_workbench_tl", "y": 180 },
+    "active=true,facing=south,part=tr":  { "model": "etherforge:ether_workbench_tr", "y": 180 },
+    "active=true,facing=south,part=bl":  { "model": "etherforge:ether_workbench_bl", "y": 180 },
+    "active=true,facing=south,part=br":  { "model": "etherforge:ether_workbench_br", "y": 180 },
 
+    "active=false,facing=west,part=tl":  { "model": "etherforge:ether_workbench_tl", "y": 90 },
+    "active=false,facing=west,part=tr":  { "model": "etherforge:ether_workbench_tr", "y": 90 },
+    "active=false,facing=west,part=bl":  { "model": "etherforge:ether_workbench_bl", "y": 90 },
+    "active=false,facing=west,part=br":  { "model": "etherforge:ether_workbench_br", "y": 90 },
 
-    "active=false,facing=west,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 270 },
-    "active=false,facing=west,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 270 },
-    "active=false,facing=west,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 270 },
-    "active=false,facing=west,part=br": { "model": "etherforge:ether_workbench_br", "y": 270 },
+    "active=true,facing=west,part=tl":   { "model": "etherforge:ether_workbench_tl", "y": 90 },
+    "active=true,facing=west,part=tr":   { "model": "etherforge:ether_workbench_tr", "y": 90 },
+    "active=true,facing=west,part=bl":   { "model": "etherforge:ether_workbench_bl", "y": 90 },
+    "active=true,facing=west,part=br":   { "model": "etherforge:ether_workbench_br", "y": 90 },
 
-    "active=true,facing=west,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 270 },
-    "active=true,facing=west,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 270 },
-    "active=true,facing=west,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 270 },
-    "active=true,facing=west,part=br": { "model": "etherforge:ether_workbench_br", "y": 270 },
+    "active=false,facing=east,part=tl":  { "model": "etherforge:ether_workbench_tl", "y": 270 },
+    "active=false,facing=east,part=tr":  { "model": "etherforge:ether_workbench_tr", "y": 270 },
+    "active=false,facing=east,part=bl":  { "model": "etherforge:ether_workbench_bl", "y": 270 },
+    "active=false,facing=east,part=br":  { "model": "etherforge:ether_workbench_br", "y": 270 },
 
-
-    "active=false,facing=east,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 90 },
-    "active=false,facing=east,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 90 },
-    "active=false,facing=east,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 90 },
-    "active=false,facing=east,part=br": { "model": "etherforge:ether_workbench_br", "y": 90 },
-
-    "active=true,facing=east,part=tl": { "model": "etherforge:ether_workbench_tl", "y": 90 },
-    "active=true,facing=east,part=tr": { "model": "etherforge:ether_workbench_tr", "y": 90 },
-    "active=true,facing=east,part=bl": { "model": "etherforge:ether_workbench_bl", "y": 90 },
-    "active=true,facing=east,part=br": { "model": "etherforge:ether_workbench_br", "y": 90 }
+    "active=true,facing=east,part=tl":   { "model": "etherforge:ether_workbench_tl", "y": 270 },
+    "active=true,facing=east,part=tr":   { "model": "etherforge:ether_workbench_tr", "y": 270 },
+    "active=true,facing=east,part=bl":   { "model": "etherforge:ether_workbench_bl", "y": 270 },
+    "active=true,facing=east,part=br":   { "model": "etherforge:ether_workbench_br", "y": 270 }
   }
 }

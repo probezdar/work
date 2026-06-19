@@ -71,7 +71,7 @@ public class ModBlocks {
                 .setUnlocalizedName(Reference.MOD_ID + ".ether_workbench")
                 .setCreativeTab(ModCreativeTab.INSTANCE);
 
-        ETHER_PIPE = new BlockEtherPipe(20, 100)
+        ETHER_PIPE = new BlockEtherPipe(20, 100,1)
                 .setRegistryName(Reference.MOD_ID, "ether_pipe")
                 .setUnlocalizedName(Reference.MOD_ID + ".ether_pipe")
                 .setCreativeTab(ModCreativeTab.INSTANCE);

@@ -1,4 +1,3 @@
-// tileentity/TileEntityEtherPipe.java
 package com.etherforge.mod.tileentity;
 
 import com.etherforge.mod.util.IEtherReceiver;
@@ -8,139 +7,80 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class TileEntityEtherPipe extends TileEntity implements ITickable {
 
-    // ═══════════════════════════════════════════
-    //  Буфер трубы
-    // ═══════════════════════════════════════════
-    private int etherBuffer   = 0;
-    private int maxBuffer     = 100; // базовый тир
-    private int throughput    = 20;  // AE/tick — базовый тир
+    private int etherBuffer = 0;
+    private int maxBuffer;
+    private int throughput;
+    private int tier;
 
-    private int tickCounter   = 0;
-    private static final int TICK_RATE = 2; // работаем каждые 2 тика
+    // Таймер для отдачи эфира машинам
+    private int distributeTimer = 0;
 
-    // ═══════════════════════════════════════════
-    //  Конструктор для тиров
-    // ═══════════════════════════════════════════
     public TileEntityEtherPipe() {
-        this(20, 100);
+        this(20, 100, 1);
     }
 
-    public TileEntityEtherPipe(int throughput, int maxBuffer) {
+    public TileEntityEtherPipe(int throughput, int maxBuffer, int tier) {
         this.throughput = throughput;
         this.maxBuffer  = maxBuffer;
+        this.tier       = tier;
     }
 
-    // ═══════════════════════════════════════════
-    //  Tick
-    // ═══════════════════════════════════════════
     @Override
     public void update() {
         if (world == null || world.isRemote) return;
 
-        tickCounter++;
-        if (tickCounter < TICK_RATE) return;
-        tickCounter = 0;
-
-        // 1. Тянем эфир из источников (конденсаторов) рядом
-        pullFromSources();
-
-        // 2. Распределяем буфер по получателям
+        // Раздаём эфир машинам каждые 2 тика
         if (etherBuffer > 0) {
-            distributeEther();
+            distributeTimer++;
+            if (distributeTimer >= 2) {
+                distributeTimer = 0;
+                distributeToMachines();
+            }
         }
     }
 
     // ═══════════════════════════════════════════
-    //  Тянем из конденсаторов и других труб
+    //  Принять эфир (вызывается конденсатором)
     // ═══════════════════════════════════════════
-    private void pullFromSources() {
-        if (etherBuffer >= maxBuffer) return;
-
-        int canAccept = maxBuffer - etherBuffer;
-
-        for (EnumFacing facing : EnumFacing.VALUES) {
-            BlockPos neighborPos = pos.offset(facing);
-            TileEntity te = world.getTileEntity(neighborPos);
-
-            // Тянем из конденсатора
-            if (te instanceof TileEntityEtherCondenser) {
-                TileEntityEtherCondenser condenser =
-                        (TileEntityEtherCondenser) te;
-
-                int toExtract = Math.min(canAccept, throughput);
-                if (toExtract > 0 && condenser.getEtherStored() > 0) {
-                    int extracted = condenser.extractEther(toExtract);
-                    etherBuffer += extracted;
-                    canAccept   -= extracted;
-                    if (canAccept <= 0) break;
-                }
-            }
-
-            // Тянем из другой трубы если у неё больше буфер
-            // (выравниваем уровень между трубами)
-            if (te instanceof TileEntityEtherPipe) {
-                TileEntityEtherPipe otherPipe = (TileEntityEtherPipe) te;
-                if (otherPipe.etherBuffer > etherBuffer + 1) {
-                    int diff    = (otherPipe.etherBuffer - etherBuffer) / 2;
-                    int toTake  = Math.min(diff, throughput);
-                    toTake      = Math.min(toTake, canAccept);
-                    if (toTake > 0) {
-                        otherPipe.etherBuffer -= toTake;
-                        etherBuffer           += toTake;
-                        canAccept             -= toTake;
-                        otherPipe.markDirty();
-                        if (canAccept <= 0) break;
-                    }
-                }
-            }
-        }
-
-        if (etherBuffer > 0) markDirty();
+    public int receiveEther(int amount) {
+        int space    = maxBuffer - etherBuffer;
+        int received = Math.min(space, amount);
+        etherBuffer += received;
+        if (received > 0) markDirty();
+        return received;
     }
 
     // ═══════════════════════════════════════════
-    //  Распределяем эфир поровну между получателями
+    //  Отдать эфир машинам рядом
     // ═══════════════════════════════════════════
-    private void distributeEther() {
-        // Собираем всех получателей (машины с IEtherReceiver)
-        List<IEtherReceiver> receivers = new ArrayList<>();
+    private void distributeToMachines() {
+        java.util.List<IEtherReceiver> receivers = new java.util.ArrayList<>();
 
         for (EnumFacing facing : EnumFacing.VALUES) {
-            BlockPos neighborPos = pos.offset(facing);
-            TileEntity te = world.getTileEntity(neighborPos);
+            TileEntity te = world.getTileEntity(pos.offset(facing));
 
-            // Машины-получатели (не трубы и не конденсаторы-источники)
-            if (te instanceof IEtherReceiver
-                    && !(te instanceof TileEntityEtherPipe)
-                    && !(te instanceof TileEntityEtherCondenser)) {
+            if (te instanceof TileEntityEtherPipe) continue;
+            if (te instanceof TileEntityEtherCondenser) continue;
 
-                IEtherReceiver receiver = (IEtherReceiver) te;
-                if (receiver.canReceiveEther()) {
-                    receivers.add(receiver);
-                }
+            if (te instanceof IEtherReceiver) {
+                IEtherReceiver r = (IEtherReceiver) te;
+                if (r.canReceiveEther()) receivers.add(r);
             }
         }
 
         if (receivers.isEmpty()) return;
 
-        // Делим поровну
-        int totalToSend  = Math.min(etherBuffer, throughput);
-        int perReceiver  = totalToSend / receivers.size();
-        if (perReceiver <= 0) perReceiver = 1;
+        int perReceiver = Math.max(1, Math.min(etherBuffer, throughput) / receivers.size());
 
-        for (IEtherReceiver receiver : receivers) {
+        for (IEtherReceiver r : receivers) {
             if (etherBuffer <= 0) break;
-
-            int toSend  = Math.min(perReceiver, etherBuffer);
-            int accepted = receiver.receiveEther(toSend, false);
-            etherBuffer -= accepted;
+            int sent = r.receiveEther(Math.min(perReceiver, etherBuffer), false);
+            etherBuffer -= sent;
         }
 
+        if (etherBuffer < 0) etherBuffer = 0;
         markDirty();
     }
 
@@ -150,6 +90,7 @@ public class TileEntityEtherPipe extends TileEntity implements ITickable {
     public int getEtherBuffer()  { return etherBuffer; }
     public int getMaxBuffer()    { return maxBuffer; }
     public int getThroughput()   { return throughput; }
+    public int getMyTier()       { return tier; }
 
     // ═══════════════════════════════════════════
     //  NBT
@@ -160,6 +101,7 @@ public class TileEntityEtherPipe extends TileEntity implements ITickable {
         compound.setInteger("EtherBuffer", etherBuffer);
         compound.setInteger("Throughput",  throughput);
         compound.setInteger("MaxBuffer",   maxBuffer);
+        compound.setInteger("Tier",        tier);
         return compound;
     }
 
@@ -169,6 +111,10 @@ public class TileEntityEtherPipe extends TileEntity implements ITickable {
         etherBuffer = compound.getInteger("EtherBuffer");
         throughput  = compound.getInteger("Throughput");
         maxBuffer   = compound.getInteger("MaxBuffer");
+        tier        = compound.getInteger("Tier");
+        if (tier <= 0) tier = 1; // защита
+        if (maxBuffer <= 0) maxBuffer = 100;
+        if (throughput <= 0) throughput = 20;
     }
 
     @Override

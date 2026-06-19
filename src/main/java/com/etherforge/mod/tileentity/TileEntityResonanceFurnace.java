@@ -89,6 +89,7 @@ public class TileEntityResonanceFurnace extends TileEntity
     private float  moonMultiplier = 1.0f; // 1.0 день / 1.5 ночь / 2.0 полнолуние
 
     private final Random random = new Random();
+    private int syncTimer = 0;
 
     // ═══════════════════════════════════════════
     //  Tick
@@ -99,6 +100,13 @@ public class TileEntityResonanceFurnace extends TileEntity
 
         boolean dirty = false;
 
+        syncTimer++;
+        if (syncTimer >= 20) {
+            syncTimer = 0;
+            world.notifyBlockUpdate(pos,
+                    world.getBlockState(pos),
+                    world.getBlockState(pos), 3);
+        }
         // Тянем эфир из соседних конденсаторов
         if (etherStored < MAX_ETHER) {
             dirty = pullEtherFromNeighbors() || dirty;
@@ -108,9 +116,12 @@ public class TileEntityResonanceFurnace extends TileEntity
         moonCheckTimer++;
         if (moonCheckTimer >= 20) {
             moonCheckTimer = 0;
-            moonMultiplier = calcMoonMultiplier();
+            float newMultiplier = calcMoonMultiplier();
+            if (newMultiplier != moonMultiplier) {
+                moonMultiplier = newMultiplier;
+                dirty = true;
+            }
         }
-
         if (canSmelt()) {
             if (etherStored >= ETHER_PER_SMELT) {
                 // Применяем лунный множитель к скорости

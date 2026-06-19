@@ -9,6 +9,9 @@ tile.etherforge.ether_block.name=Эфирный Блок
 tile.etherforge.ether_condenser.name=Конденсатор Эфира
 tile.etherforge.resonance_furnace.name=Резонансная Печь
 tile.etherforge.ether_workbench.name=Эфирный Верстак
+tile.etherforge.ether_pipe.name=Эфирная Труба
+tile.etherforge.ether_pipe_reinforced.name=Укрепленная Эфирная Труба
+tile.etherforge.ether_pipe_resonant.name=Резонансная Эфирная Труба
 
 # Предметы
 item.etherforge.ether_crystal.name=Эфирный Кристалл

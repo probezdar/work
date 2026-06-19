@@ -69,11 +69,13 @@ public class BlockEtherPipe extends Block {
     // ═══════════════════════════════════════════
     protected final int throughput;
     protected final int maxBuffer;
+    protected final int tier;
 
-    public BlockEtherPipe(int throughput, int maxBuffer) {
+    public BlockEtherPipe(int throughput, int maxBuffer,int tier) {
         super(Material.IRON);
         this.throughput = throughput;
         this.maxBuffer  = maxBuffer;
+        this.tier = tier;
         setHardness(1.5f);
         setResistance(5.0f);
         setHarvestLevel("pickaxe", 1);
@@ -128,6 +130,8 @@ public class BlockEtherPipe extends Block {
         }
     }
 
+    public int getTier(){return tier;}
+
     // Реальное состояние берём из мира
     @Override
     public IBlockState getActualState(IBlockState state,
@@ -148,15 +152,20 @@ public class BlockEtherPipe extends Block {
     private boolean canConnect(IBlockAccess world, BlockPos pos,
                                EnumFacing facing) {
         BlockPos neighborPos = pos.offset(facing);
+        IBlockState neighborState = world.getBlockState(neighborPos);
         TileEntity te = world.getTileEntity(neighborPos);
 
-        // Подключаемся к трубам
-        if (te instanceof TileEntityEtherPipe) return true;
+        // Труба — только того же тира
+        if (neighborState.getBlock() instanceof BlockEtherPipe) {
+            BlockEtherPipe otherPipe =
+                    (BlockEtherPipe) neighborState.getBlock();
+            return otherPipe.getTier() == this.tier;
+        }
 
-        // Подключаемся к конденсатору (источник)
+        // Конденсатор — подключается к любому тиру
         if (te instanceof TileEntityEtherCondenser) return true;
 
-        // Подключаемся к любой машине с IEtherReceiver
+        // Машины с IEtherReceiver — подключается к любому тиру
         if (te instanceof IEtherReceiver) return true;
 
         return false;
@@ -253,6 +262,6 @@ public class BlockEtherPipe extends Block {
 
     @Override
     public TileEntity createTileEntity(World world, IBlockState state) {
-        return new TileEntityEtherPipe(throughput, maxBuffer);
+        return new TileEntityEtherPipe(throughput, maxBuffer,tier);
     }
 }

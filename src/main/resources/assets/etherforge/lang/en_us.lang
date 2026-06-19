@@ -9,6 +9,9 @@ tile.etherforge.ether_block.name=Ether Block
 tile.etherforge.ether_condenser.name=Ether Condenser
 tile.etherforge.resonance_furnace.name=Resonance Furnace
 tile.etherforge.ether_workbench.name=Ether Workbench
+tile.etherforge.ether_pipe.name=Ether Pipe
+tile.etherforge.ether_pipe_reinforced.name=Reinforced Ether Pipe
+tile.etherforge.ether_pipe_resonant.name=Resonant Ether Pipe
 
 # Предметы (префикс item. + unlocalizedName)
 item.etherforge.ether_crystal.name=Ether Crystal
