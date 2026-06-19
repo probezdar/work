@@ -61,12 +61,9 @@ public class EtherWorkbenchRecipeRegistry {
         ));
 
         // Тир 1: Ether Pipe
-// Сетка: [Iron][Crystal][Iron] + [Crystal]    = 4 трубы
-//        [Iron][Crystal][Iron]   (только 4 слота 2x2)
-// Адаптируем под 2x2:
 // [Iron Ingot][Ether Crystal]
 // [Ether Crystal][Iron Ingot]
-// Катализаторы: 4x Aqua Crystal (поток)
+// Катализаторы: 4x
         register(new EtherWorkbenchRecipe(
                 new ItemStack[] {
                         new ItemStack(Items.IRON_INGOT),
@@ -75,10 +72,10 @@ public class EtherWorkbenchRecipeRegistry {
                         new ItemStack(Items.IRON_INGOT)
                 },
                 new ItemStack[] {
-                        new ItemStack(ModItems.CRYSTAL_AQUA),
-                        new ItemStack(ModItems.CRYSTAL_AQUA),
-                        new ItemStack(ModItems.CRYSTAL_AQUA),
-                        new ItemStack(ModItems.CRYSTAL_AQUA)
+                        new ItemStack(ModItems.CATALYST_ECLIPSE),
+                        new ItemStack(ModItems.CATALYST_ECLIPSE),
+                        new ItemStack(ModItems.CATALYST_ECLIPSE),
+                        new ItemStack(ModItems.CATALYST_ECLIPSE)
                 },
                 new ItemStack(ModBlocks.ETHER_PIPE, 4)
         ));

@@ -6,7 +6,6 @@ import com.etherforge.mod.items.ItemEtherscope;
 import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
@@ -17,15 +16,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
 public class BlockEtherWorkbench extends Block {
 
-    // Часть мультиблока
     public enum WorkbenchPart implements IStringSerializable {
         TL("tl"), TR("tr"), BL("bl"), BR("br");
         private final String name;
@@ -35,11 +32,8 @@ public class BlockEtherWorkbench extends Block {
 
     public static final PropertyEnum<WorkbenchPart> PART =
             PropertyEnum.create("part", WorkbenchPart.class);
-    public static final PropertyBool ACTIVE =
-            PropertyBool.create("active");
     public static final PropertyDirection FACING =
-            PropertyDirection.create("facing",
-                    EnumFacing.Plane.HORIZONTAL);
+            PropertyDirection.create("facing", EnumFacing.Plane.HORIZONTAL);
 
     public BlockEtherWorkbench() {
         super(Material.WOOD);
@@ -48,51 +42,43 @@ public class BlockEtherWorkbench extends Block {
         setHarvestLevel("axe", 1);
         setDefaultState(blockState.getBaseState()
                 .withProperty(PART,   WorkbenchPart.TL)
-                .withProperty(ACTIVE, false)
                 .withProperty(FACING, EnumFacing.NORTH));
     }
 
     // ═══════════════════════════════════════════
-    //  BlockState
+    //  BlockState — PART(2 бита) + FACING(2 бита)
     // ═══════════════════════════════════════════
     @Override
     protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, PART, ACTIVE, FACING);
-    }
-
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        // meta 0-3 = часть, bit 2 = активен, bit 3 = facing(2 бита)
-        WorkbenchPart part = WorkbenchPart.values()[meta & 3];
-        return getDefaultState().withProperty(PART, part)
-                .withProperty(ACTIVE, false)
-                .withProperty(FACING, EnumFacing.NORTH);
+        return new BlockStateContainer(this, PART, FACING);
     }
 
     @Override
     public int getMetaFromState(IBlockState state) {
-        return state.getValue(PART).ordinal();
-    }
-
-    public static boolean canFormSilent(World world,
-                                        BlockPos masterPos,
-                                        EnumFacing facing) {
-        return canFormAt(world, masterPos, facing); // canFormAt уже private — сделай его package-private
+        int part   = state.getValue(PART).ordinal();          // 0-3
+        int facing = state.getValue(FACING).getHorizontalIndex(); // 0-3
+        return part | (facing << 2);
     }
 
     @Override
-    public boolean isOpaqueCube(IBlockState state) { return false; }
+    public IBlockState getStateFromMeta(int meta) {
+        WorkbenchPart part = WorkbenchPart.values()[meta & 3];
+        EnumFacing facing  = EnumFacing.getHorizontal((meta >> 2) & 3);
+        return getDefaultState()
+                .withProperty(PART, part)
+                .withProperty(FACING, facing);
+    }
+
+    @Override public boolean isOpaqueCube(IBlockState state) { return false; }
+    @Override public boolean isFullCube(IBlockState state)   { return false; }
 
     @Override
-    public boolean isFullCube(IBlockState state) { return false; }
-
-    @Override
-    public net.minecraft.util.EnumBlockRenderType getRenderType(IBlockState state) {
-        return net.minecraft.util.EnumBlockRenderType.MODEL;
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.MODEL;
     }
 
     // ═══════════════════════════════════════════
-    //  TileEntity только у TL (мастер)
+    //  TileEntity только у TL
     // ═══════════════════════════════════════════
     @Override
     public boolean hasTileEntity(IBlockState state) {
@@ -108,22 +94,22 @@ public class BlockEtherWorkbench extends Block {
     }
 
     // ═══════════════════════════════════════════
-    //  Установка блока
+    //  Установка — заготовка TL, facing на игрока
     // ═══════════════════════════════════════════
     @Override
     public IBlockState getStateForPlacement(World world, BlockPos pos,
-                                            EnumFacing facing, float hitX, float hitY,
-                                            float hitZ, int meta,
-                                            EntityLivingBase placer, EnumHand hand) {
+                                            EnumFacing facing, float hitX,
+                                            float hitY, float hitZ, int meta,
+                                            EntityLivingBase placer,
+                                            EnumHand hand) {
         EnumFacing playerFacing = placer.getHorizontalFacing().getOpposite();
         return getDefaultState()
-                .withProperty(PART,   WorkbenchPart.TL)
-                .withProperty(ACTIVE, false)
+                .withProperty(PART, WorkbenchPart.TL)
                 .withProperty(FACING, playerFacing);
     }
 
     // ═══════════════════════════════════════════
-    //  Клик — открыть GUI только если активен
+    //  Клик — открыть GUI если активен
     // ═══════════════════════════════════════════
     @Override
     public boolean onBlockActivated(World world, BlockPos pos,
@@ -131,128 +117,53 @@ public class BlockEtherWorkbench extends Block {
                                     EnumHand hand, EnumFacing facing,
                                     float hitX, float hitY, float hitZ) {
 
-        // Эфироскоп — обрабатывается в ItemEtherscope
-        Item heldItem = player.getHeldItem(hand).getItem();
-        if (heldItem instanceof ItemEtherscope) {
-            return false; // пусть ItemEtherscope.onItemUseFirst обработает
+        // Эфироскоп обрабатывается отдельно
+        Item held = player.getHeldItem(hand).getItem();
+        if (held instanceof ItemEtherscope) {
+            return false;
         }
 
         if (!world.isRemote) {
-            if (!state.getValue(ACTIVE)) {
-                player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                        "§5Верстак не активирован. Используй Эфироскоп."));
-                return true;
-            }
+            BlockPos masterPos = getMasterPos(pos, state);
+            TileEntity te = world.getTileEntity(masterPos);
 
-            // Найти мастер-блок и открыть GUI
-            BlockPos masterPos = getMasterPos(world, pos, state);
-            if (masterPos != null) {
-                TileEntity te = world.getTileEntity(masterPos);
-                if (te instanceof TileEntityEtherWorkbench) {
-                    player.openGui(EtherForge.instance,
-                            ModGuiHandler.GUI_WORKBENCH,
-                            world,
-                            masterPos.getX(),
-                            masterPos.getY(),
-                            masterPos.getZ());
-                }
+            if (te instanceof TileEntityEtherWorkbench
+                    && ((TileEntityEtherWorkbench) te).isActive()) {
+                player.openGui(EtherForge.instance,
+                        ModGuiHandler.GUI_WORKBENCH,
+                        world,
+                        masterPos.getX(),
+                        masterPos.getY(),
+                        masterPos.getZ());
+            } else {
+                player.sendMessage(new TextComponentString(
+                        "§5Верстак не активирован. Используй Эфироскоп."));
             }
         }
         return true;
     }
 
     // ═══════════════════════════════════════════
-    //  Найти мастер-блок (TL) от любой части
+    //  Мастер-блок (TL) от любой части
     // ═══════════════════════════════════════════
-    public static BlockPos getMasterPos(World world, BlockPos pos,
-                                        IBlockState state) {
-        EnumFacing facing  = state.getValue(FACING);
+    public static BlockPos getMasterPos(BlockPos pos, IBlockState state) {
+        EnumFacing facing = state.getValue(FACING);
         WorkbenchPart part = state.getValue(PART);
-        EnumFacing right   = facing.rotateY();
+        EnumFacing right  = facing.rotateY();
 
-        // Смещения от каждой части до TL
         switch (part) {
             case TL: return pos;
-            case TR: return pos.offset(right.getOpposite());
-            case BL: return pos.offset(facing.getOpposite());
+            case TR: return pos.offset(right.getOpposite());          // от TR идём влево → TL
+            case BL: return pos.offset(facing);                       // от BL идём вперёд → TL
             case BR: return pos.offset(right.getOpposite())
-                    .offset(facing.getOpposite());
-            default: return null;
+                    .offset(facing);                       // от BR влево+вперёд → TL
+            default: return pos;
         }
     }
 
     // ═══════════════════════════════════════════
-//  formAt_silent — тишина (без звука)
-// ═══════════════════════════════════════════
-    public static void formAt_silent(World world,
-                                     BlockPos masterPos,
-                                     EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
-
-        BlockPos tl = masterPos;
-        BlockPos tr = masterPos.offset(right);
-        BlockPos bl = masterPos.offset(facing.getOpposite());
-        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
-
-        if (!canFormAt(world, masterPos, facing)) return;
-
-        BlockEtherWorkbench block =
-                (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
-
-        // Флаг 3 = обновить И отправить клиенту (исправлено с 2 на 3)
-        world.setBlockState(tl, block.getDefaultState()
-                .withProperty(PART,   WorkbenchPart.TL)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(tr, block.getDefaultState()
-                .withProperty(PART,   WorkbenchPart.TR)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(bl, block.getDefaultState()
-                .withProperty(PART,   WorkbenchPart.BL)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(br, block.getDefaultState()
-                .withProperty(PART,   WorkbenchPart.BR)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        ensureMasterTE(world, tl, facing);
-    }
-
+    //  Эфироскоп — попытка собрать
     // ═══════════════════════════════════════════
-//  Обновляем formAt чтобы тоже сохранял в TE
-// ═══════════════════════════════════════════
-    private static void ensureMasterTE(World world,
-                                       BlockPos masterPos,
-                                       EnumFacing facing) {
-        if (!(world.getTileEntity(masterPos) instanceof TileEntityEtherWorkbench)) {
-            world.setTileEntity(masterPos, new TileEntityEtherWorkbench());
-        }
-        TileEntityEtherWorkbench te =
-                (TileEntityEtherWorkbench) world.getTileEntity(masterPos);
-        te.setActiveData(true, facing);
-    }
-
-    // ═══════════════════════════════════════════
-    //  Проверка полного мультиблока
-    // ═══════════════════════════════════════════
-    public static boolean isComplete(World world, BlockPos masterPos,
-                                     EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
-        BlockPos tr = masterPos.offset(right);
-        BlockPos bl = masterPos.offset(facing.getOpposite());
-        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
-
-        return isWorkbenchPart(world, masterPos, WorkbenchPart.TL, facing)
-                && isWorkbenchPart(world, tr,         WorkbenchPart.TR, facing)
-                && isWorkbenchPart(world, bl,         WorkbenchPart.BL, facing)
-                && isWorkbenchPart(world, br,         WorkbenchPart.BR, facing);
-    }
-
     public static boolean tryActivateFromEtherscope(World world,
                                                     BlockPos clickedPos,
                                                     EnumFacing facing,
@@ -261,208 +172,175 @@ public class BlockEtherWorkbench extends Block {
 
         EnumFacing right = facing.rotateY();
 
-        /*
-         * Относительно masterPos:
-         *
-         * TL = masterPos
-         * TR = masterPos + right
-         * BL = masterPos + facing.opposite
-         * BR = masterPos + right + facing.opposite
-         *
-         * Но игрок может кликнуть по любому из 4 блоков.
-         * Поэтому пробуем 4 возможных masterPos.
-         */
+        // Кликнутый блок может быть любой из 4 частей.
+        // Вычисляем возможный masterPos для каждого случая:
+        //
+        // Если кликнули по TL → master = clickedPos
+        // Если кликнули по TR → master = clickedPos - right
+        // Если кликнули по BL → master = clickedPos + facing
+        // Если кликнули по BR → master = clickedPos - right + facing
 
-        BlockPos[] possibleMasters = new BlockPos[] {
-                clickedPos,                                            // кликнули по TL
-                clickedPos.offset(right.getOpposite()),                // кликнули по TR
-                clickedPos.offset(facing),                             // кликнули по BL
-                clickedPos.offset(right.getOpposite()).offset(facing)  // кликнули по BR
+        BlockPos[] candidates = {
+                clickedPos,                                    // TL
+                clickedPos.offset(right.getOpposite()),        // TR
+                clickedPos.offset(facing),                     // BL
+                clickedPos.offset(right.getOpposite())
+                        .offset(facing)                      // BR
         };
 
-        for (BlockPos masterPos : possibleMasters) {
-            if (canFormAt(world, masterPos, facing)) {
-                formAt(world, masterPos, facing);
+        for (BlockPos masterPos : candidates) {
+            // Кандидат валиден только если masterPos — это верстак
+            if (!isWorkbenchAt(world, masterPos)) continue;
 
-                player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                        "§dЭфирный Верстак собран."
-                ));
+            // Все 4 блока должны быть верстаком
+            if (!canFormAt(world, masterPos, facing)) continue;
 
-                world.playSound(
-                        null,
-                        masterPos,
-                        net.minecraft.util.SoundEvent.REGISTRY.getObject(
-                                new net.minecraft.util.ResourceLocation(
-                                        "block.enchantment_table.use"
-                                )
-                        ),
-                        net.minecraft.util.SoundCategory.BLOCKS,
-                        1.0f,
-                        0.8f
-                );
-
-                return true;
+            // Проверяем что ни один из 4 блоков не занят другим активным верстаком
+            if (anyPartBelongsToActiveWorkbench(world, masterPos, facing)) {
+                player.sendMessage(new TextComponentString(
+                        "§cОдин из блоков уже принадлежит другому верстаку."));
+                continue;
             }
+
+            formAt(world, masterPos, facing);
+            player.sendMessage(new TextComponentString(
+                    "§dЭфирный Верстак собран."));
+            world.playSound(null, masterPos,
+                    SoundEvent.REGISTRY.getObject(new ResourceLocation(
+                            "block.enchantment_table.use")),
+                    SoundCategory.BLOCKS, 1.0f, 0.8f);
+            return true;
         }
 
-        player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "§cМультиблок неполный. Нужно поставить 4 блока верстака квадратом 2x2."
-        ));
-
-        player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "§7Подсказка: смотри на конструкцию с той стороны, где должен быть перед верстака, и нажми эфироскопом."
-        ));
-
+        player.sendMessage(new TextComponentString(
+                "§cНужно 4 блока верстака квадратом 2x2 (свободных)."));
         return false;
     }
 
-    public static boolean canFormAt(World world,
-                                     BlockPos masterPos,
-                                     EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
+    // Вспомогательный — проверяем один блок
+    private static boolean isWorkbenchAt(World world, BlockPos pos) {
+        return world.getBlockState(pos).getBlock() instanceof BlockEtherWorkbench;
+    }
 
+    // Проверяем занятость всех 4 блоков будущего верстака
+    private static boolean anyPartBelongsToActiveWorkbench(World world,
+                                                           BlockPos masterPos,
+                                                           EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
+        BlockPos[] parts = {
+                masterPos,
+                masterPos.offset(right),
+                masterPos.offset(facing.getOpposite()),
+                masterPos.offset(right).offset(facing.getOpposite())
+        };
+
+        for (BlockPos p : parts) {
+            IBlockState s = world.getBlockState(p);
+            if (!(s.getBlock() instanceof BlockEtherWorkbench)) continue;
+
+            // Получаем мастера этого блока по его текущему state
+            BlockPos existingMaster = getMasterPos(p, s);
+            TileEntity te = world.getTileEntity(existingMaster);
+            if (te instanceof TileEntityEtherWorkbench
+                    && ((TileEntityEtherWorkbench) te).isActive()) {
+                return true; // занят
+            }
+        }
+        return false;
+    }
+
+    // ═══════════════════════════════════════════
+    //  Проверка: все 4 блока — верстак?
+    // ═══════════════════════════════════════════
+    public static boolean canFormAt(World world, BlockPos masterPos,
+                                    EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
+        BlockPos tr = masterPos.offset(right);
+        BlockPos bl = masterPos.offset(facing.getOpposite());
+        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
+
+        return isWorkbench(world, masterPos)
+                && isWorkbench(world, tr)
+                && isWorkbench(world, bl)
+                && isWorkbench(world, br);
+    }
+
+
+    private static boolean isWorkbench(World world, BlockPos pos) {
+        return world.getBlockState(pos).getBlock()
+                instanceof BlockEtherWorkbench;
+    }
+
+
+    // ═══════════════════════════════════════════
+    //  Сборка — расставить PART, активировать TE
+    // ═══════════════════════════════════════════
+    public static void formAt(World world, BlockPos masterPos,
+                              EnumFacing facing) {
+        EnumFacing right = facing.rotateY();
         BlockPos tl = masterPos;
         BlockPos tr = masterPos.offset(right);
         BlockPos bl = masterPos.offset(facing.getOpposite());
         BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
 
-        return isAnyWorkbench(world, tl)
-                && isAnyWorkbench(world, tr)
-                && isAnyWorkbench(world, bl)
-                && isAnyWorkbench(world, br);
-    }
+        BlockEtherWorkbench block =
+                (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
 
-    private static boolean isAnyWorkbench(World world, BlockPos pos) {
-        IBlockState state = world.getBlockState(pos);
-        return state.getBlock() instanceof BlockEtherWorkbench;
-    }
+        setPart(world, tl, block, WorkbenchPart.TL, facing);
+        setPart(world, tr, block, WorkbenchPart.TR, facing);
+        setPart(world, bl, block, WorkbenchPart.BL, facing);
+        setPart(world, br, block, WorkbenchPart.BR, facing);
 
-    private static void formAt(World world,
-                               BlockPos masterPos,
-                               EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
+        removeNonMasterTE(world, tr);
+        removeNonMasterTE(world, bl);
+        removeNonMasterTE(world, br);
 
-        BlockPos tl = masterPos;
-        BlockPos tr = masterPos.offset(right);
-        BlockPos bl = masterPos.offset(facing.getOpposite());
-        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
-
-        BlockEtherWorkbench block = (BlockEtherWorkbench) world.getBlockState(masterPos).getBlock();
-
-        world.setBlockState(tl, block.getDefaultState()
-                .withProperty(PART, WorkbenchPart.TL)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(tr, block.getDefaultState()
-                .withProperty(PART, WorkbenchPart.TR)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(bl, block.getDefaultState()
-                .withProperty(PART, WorkbenchPart.BL)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        world.setBlockState(br, block.getDefaultState()
-                .withProperty(PART, WorkbenchPart.BR)
-                .withProperty(FACING, facing)
-                .withProperty(ACTIVE, true), 3);
-
-        ensureMasterTE(world, tl, facing);
-
-        world.notifyBlockUpdate(tl, world.getBlockState(tl), world.getBlockState(tl), 3);
-        world.notifyBlockUpdate(tr, world.getBlockState(tr), world.getBlockState(tr), 3);
-        world.notifyBlockUpdate(bl, world.getBlockState(bl), world.getBlockState(bl), 3);
-        world.notifyBlockUpdate(br, world.getBlockState(br), world.getBlockState(br), 3);
-
-        TileEntity te = world.getTileEntity(masterPos);
-        if (te instanceof TileEntityEtherWorkbench) {
-            ((TileEntityEtherWorkbench) te).setActiveData(true, facing);
+        if (!(world.getTileEntity(tl) instanceof TileEntityEtherWorkbench)) {
+            world.setTileEntity(tl, new TileEntityEtherWorkbench());
         }
+        TileEntityEtherWorkbench te =
+                (TileEntityEtherWorkbench) world.getTileEntity(tl);
+        te.setActiveData(true, facing);
     }
 
-    private static boolean isWorkbenchPart(World world, BlockPos pos,
-                                           WorkbenchPart part,
-                                           EnumFacing facing) {
-        IBlockState state = world.getBlockState(pos);
-        return state.getBlock() instanceof BlockEtherWorkbench
-                && state.getValue(PART)   == part
-                && state.getValue(FACING) == facing;
+    private static void setPart(World world, BlockPos pos,
+                                BlockEtherWorkbench block,
+                                WorkbenchPart part, EnumFacing facing) {
+        world.setBlockState(pos, block.getDefaultState()
+                .withProperty(PART, part)
+                .withProperty(FACING, facing), 3);
     }
 
-    // ═══════════════════════════════════════════
-    //  Активация всех 4 блоков
-    // ═══════════════════════════════════════════
-    public static void activate(World world, BlockPos masterPos,
-                                EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
-        BlockPos tr = masterPos.offset(right);
-        BlockPos bl = masterPos.offset(facing.getOpposite());
-        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
-
-        setActive(world, masterPos, true);
-        setActive(world, tr,        true);
-        setActive(world, bl,        true);
-        setActive(world, br,        true);
-
-        world.playSound(null, masterPos,
-                net.minecraft.util.SoundEvent.REGISTRY.getObject(
-                        new net.minecraft.util.ResourceLocation(
-                                "block.enchantment_table.use")),
-                net.minecraft.util.SoundCategory.BLOCKS,
-                1.0f, 0.8f);
-    }
-
-    // ═══════════════════════════════════════════
-    //  Деактивация всех 4 блоков
-    // ═══════════════════════════════════════════
-    public static void deactivate(World world, BlockPos masterPos,
-                                  EnumFacing facing) {
-        EnumFacing right = facing.rotateY();
-        BlockPos tr = masterPos.offset(right);
-        BlockPos bl = masterPos.offset(facing.getOpposite());
-        BlockPos br = masterPos.offset(right).offset(facing.getOpposite());
-
-        setActive(world, masterPos, false);
-        setActive(world, tr,        false);
-        setActive(world, bl,        false);
-        setActive(world, br,        false);
-    }
-
-    private static void setActive(World world, BlockPos pos, boolean active) {
-        IBlockState state = world.getBlockState(pos);
-        if (state.getBlock() instanceof BlockEtherWorkbench) {
-            world.setBlockState(pos,
-                    state.withProperty(ACTIVE, active), 3);
+    private static void removeNonMasterTE(World world, BlockPos pos) {
+        if (world.getTileEntity(pos) instanceof TileEntityEtherWorkbench) {
+            world.removeTileEntity(pos);
         }
     }
 
     // ═══════════════════════════════════════════
-    //  При разрушении — деактивировать всё
+    //  Разрушение — разобрать весь верстак
     // ═══════════════════════════════════════════
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
-        BlockPos masterPos = getMasterPos(world, pos, state);
-        EnumFacing facing  = state.getValue(FACING);
+        BlockPos masterPos = getMasterPos(pos, state);
+        TileEntity te = world.getTileEntity(masterPos);
 
-        if (masterPos != null && state.getValue(ACTIVE)) {
-            // Выбросить содержимое
-            TileEntity te = world.getTileEntity(masterPos);
-            if (te instanceof TileEntityEtherWorkbench) {
-                TileEntityEtherWorkbench bench =
-                        (TileEntityEtherWorkbench) te;
-                for (int i = 0; i < bench.getSizeInventory() - 1; i++) {
-                    ItemStack stack = bench.getStackInSlot(i);
-                    if (!stack.isEmpty()) {
-                        world.spawnEntity(new EntityItem(world,
-                                pos.getX() + 0.5,
-                                pos.getY() + 0.5,
-                                pos.getZ() + 0.5, stack));
-                    }
+        if (te instanceof TileEntityEtherWorkbench
+                && ((TileEntityEtherWorkbench) te).isActive()) {
+
+            TileEntityEtherWorkbench bench = (TileEntityEtherWorkbench) te;
+
+            // Выбросить содержимое (кроме результата)
+            for (int i = 0; i < bench.getSizeInventory() - 1; i++) {
+                ItemStack stack = bench.getStackInSlot(i);
+                if (!stack.isEmpty()) {
+                    world.spawnEntity(new EntityItem(world,
+                            pos.getX() + 0.5,
+                            pos.getY() + 0.5,
+                            pos.getZ() + 0.5, stack));
                 }
             }
-            deactivate(world, masterPos, facing);
+            bench.setActiveData(false, state.getValue(FACING));
         }
         super.breakBlock(world, pos, state);
     }

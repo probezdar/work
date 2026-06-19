@@ -24,44 +24,30 @@ public class ItemEtherscope extends Item {
     }
 
     @Override
-    public EnumActionResult onItemUseFirst(EntityPlayer player,
-                                           World world,
-                                           BlockPos pos,
-                                           EnumFacing side,
-                                           float hitX,
-                                           float hitY,
-                                           float hitZ,
+    public EnumActionResult onItemUseFirst(EntityPlayer player, World world,
+                                           BlockPos pos, EnumFacing side,
+                                           float hitX, float hitY, float hitZ,
                                            EnumHand hand) {
-        if (world.isRemote) {
-            return EnumActionResult.PASS;
-        }
+        if (world.isRemote) return EnumActionResult.PASS;
 
         IBlockState state = world.getBlockState(pos);
-
         if (!(state.getBlock() instanceof BlockEtherWorkbench)) {
             return EnumActionResult.PASS;
         }
 
-        if (state.getValue(BlockEtherWorkbench.ACTIVE)) {
+        // Проверяем не активен ли уже
+        BlockPos masterPos = BlockEtherWorkbench.getMasterPos(pos, state);
+        net.minecraft.tileentity.TileEntity te = world.getTileEntity(masterPos);
+        if (te instanceof com.etherforge.mod.tileentity.TileEntityEtherWorkbench
+                && ((com.etherforge.mod.tileentity.TileEntityEtherWorkbench) te).isActive()) {
             player.sendMessage(new TextComponentString(
-                    "§5Эфирный Верстак уже активирован."
-            ));
+                    "§5Эфирный Верстак уже активирован."));
             return EnumActionResult.SUCCESS;
         }
 
-        /*
-         * Направление конструкции берём по взгляду игрока.
-         * getHorizontalFacing() — куда смотрит игрок.
-         * getOpposite() — чтобы лицевая сторона верстака смотрела на игрока.
-         */
         EnumFacing workbenchFacing = player.getHorizontalFacing().getOpposite();
-
         boolean success = BlockEtherWorkbench.tryActivateFromEtherscope(
-                world,
-                pos,
-                workbenchFacing,
-                player
-        );
+                world, pos, workbenchFacing, player);
 
         return success ? EnumActionResult.SUCCESS : EnumActionResult.FAIL;
     }

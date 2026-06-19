@@ -1,77 +1,40 @@
 package com.etherforge.mod.tileentity;
 
-import com.etherforge.mod.blocks.BlockEtherWorkbench;
 import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraft.world.World;
 
-import static com.etherforge.mod.blocks.BlockEtherWorkbench.canFormAt;
-import static com.etherforge.mod.blocks.BlockEtherWorkbench.canFormSilent;
+public class TileEntityEtherWorkbench extends TileEntity implements IInventory {
 
-public class TileEntityEtherWorkbench extends TileEntity implements IInventory, ITickable {
-
-    public static final int GRID_SIZE = 4;
+    public static final int GRID_SIZE     = 4;
     public static final int CATALYST_SLOTS = 4;
-    public static final int OUTPUT_SLOT = 8;
-    public static final int TOTAL_SLOTS = 9;
+    public static final int OUTPUT_SLOT   = 8;
+    public static final int TOTAL_SLOTS   = 9;
+
     private boolean active = false;
     private EnumFacing facing = EnumFacing.NORTH;
-    private boolean needsRestore = false;
-    public boolean isActive() { return active; }
-    public net.minecraft.util.EnumFacing getActiveFacing() { return facing; }
-
-    @Override
-    public void onLoad() {
-        // Вызывается после readFromNBT когда чанк загружен
-        // Откладываем на следующий тик чтобы мир был готов
-        if (!world.isRemote && active) {
-            // Планируем восстановление через ITickable
-            needsRestore = true;
-        }
-    }
-
-    private void restoreMultiblock() {
-        if (!active || world == null || world.isRemote) return;
-
-        BlockPos masterPos = pos;
-        IBlockState state  = world.getBlockState(masterPos);
-
-        if (!(state.getBlock() instanceof BlockEtherWorkbench)) return;
-
-        // Проверяем что все 4 блока на месте
-        if (!BlockEtherWorkbench.canFormSilent(world, masterPos, facing)) {
-            // Блоки снесли пока мы были оффлайн
-            active = false;
-            markDirty();
-            return;
-        }
-
-        BlockEtherWorkbench.formAt_silent(world, masterPos, facing);
-    }
 
     private NonNullList<ItemStack> inventory =
             NonNullList.withSize(TOTAL_SLOTS, ItemStack.EMPTY);
 
-    public void setActiveData(boolean active,
-                              net.minecraft.util.EnumFacing facing) {
+    public boolean isActive()            { return active; }
+    public EnumFacing getActiveFacing()  { return facing; }
+
+    public void setActiveData(boolean active, EnumFacing facing) {
         this.active = active;
         this.facing = facing;
         markDirty();
     }
 
     // ═══════════════════════════════════════════
-    //  Крафт-логика
+    //  Крафт
     // ═══════════════════════════════════════════
     public void updateCraftingResult() {
         ItemStack result = EtherWorkbenchRecipeRegistry.findRecipe(this);
@@ -79,7 +42,6 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
     }
 
     public void consumeCraftingIngredients() {
-        // Съедаем ингредиенты сетки
         for (int i = 0; i < GRID_SIZE; i++) {
             ItemStack stack = inventory.get(i);
             if (!stack.isEmpty()) {
@@ -87,7 +49,6 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
                 if (stack.isEmpty()) inventory.set(i, ItemStack.EMPTY);
             }
         }
-        // Тратим прочность катализаторов
         for (int i = GRID_SIZE; i < GRID_SIZE + CATALYST_SLOTS; i++) {
             ItemStack catalyst = inventory.get(i);
             if (!catalyst.isEmpty()) {
@@ -101,8 +62,6 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
         markDirty();
     }
 
-
-
     // ═══════════════════════════════════════════
     //  IInventory
     // ═══════════════════════════════════════════
@@ -114,7 +73,7 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
         return true;
     }
 
-    @Override public ItemStack getStackInSlot(int index) { return inventory.get(index); }
+    @Override public ItemStack getStackInSlot(int i) { return inventory.get(i); }
 
     @Override
     public ItemStack decrStackSize(int index, int count) {
@@ -151,9 +110,9 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
     }
 
     @Override public int getInventoryStackLimit() { return 64; }
-    @Override public boolean isUsableByPlayer(EntityPlayer player) { return true; }
-    @Override public void openInventory(EntityPlayer player) {}
-    @Override public void closeInventory(EntityPlayer player) {}
+    @Override public boolean isUsableByPlayer(EntityPlayer p) { return true; }
+    @Override public void openInventory(EntityPlayer p) {}
+    @Override public void closeInventory(EntityPlayer p) {}
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack) {
@@ -161,8 +120,9 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
     }
 
     @Override public int getField(int id) { return 0; }
-    @Override public void setField(int id, int value) {}
+    @Override public void setField(int id, int v) {}
     @Override public int getFieldCount() { return 0; }
+
     @Override public void clear() {
         for (int i = 0; i < TOTAL_SLOTS; i++) inventory.set(i, ItemStack.EMPTY);
         updateCraftingResult();
@@ -196,33 +156,28 @@ public class TileEntityEtherWorkbench extends TileEntity implements IInventory, 
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         active = compound.getBoolean("Active");
-        int facingIndex = compound.getInteger("Facing");
-        facing = EnumFacing.getFront(facingIndex);
+        facing = EnumFacing.getFront(compound.getInteger("Facing"));
         for (int i = 0; i < TOTAL_SLOTS; i++) {
             if (compound.hasKey("Slot" + i)) {
-                inventory.set(i, new ItemStack(compound.getCompoundTag("Slot" + i)));
+                inventory.set(i,
+                        new ItemStack(compound.getCompoundTag("Slot" + i)));
             }
         }
     }
 
-    // Синхронизация
-    @Override public NBTTagCompound getUpdateTag() { return writeToNBT(new NBTTagCompound()); }
+    @Override public NBTTagCompound getUpdateTag() {
+        return writeToNBT(new NBTTagCompound());
+    }
+
     @Override
     public net.minecraft.network.play.server.SPacketUpdateTileEntity getUpdatePacket() {
-        return new net.minecraft.network.play.server.SPacketUpdateTileEntity(pos, 3, getUpdateTag());
+        return new net.minecraft.network.play.server.SPacketUpdateTileEntity(
+                pos, 3, getUpdateTag());
     }
+
     @Override
     public void onDataPacket(net.minecraft.network.NetworkManager net,
                              net.minecraft.network.play.server.SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
-    }
-
-
-    @Override
-    public void update() {
-        if (needsRestore) {
-            needsRestore = false;
-            restoreMultiblock();
-        }
     }
 }
