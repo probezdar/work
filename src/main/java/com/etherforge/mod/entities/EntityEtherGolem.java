@@ -94,11 +94,11 @@ public abstract class EntityEtherGolem extends EntityCreature {
         ItemStack held = player.getHeldItem(hand);
 
         if (!world.isRemote) {
-            if (held.getItem() instanceof ItemRuneCommand) {
-                // Добавить команду в очередь
+            // 1) Рука с руной — добавить в очередь
+            if (!held.isEmpty() && held.getItem() instanceof ItemRuneCommand) {
                 ItemRuneCommand rune = (ItemRuneCommand) held.getItem();
-                GolemCommand cmd = rune.getCommand();
-                int radius = ItemRuneCommand.getRadius(held);
+                GolemCommand cmd     = rune.getCommand();
+                int radius           = ItemRuneCommand.getRadius(held);
 
                 BlockPos target = null;
                 if (held.hasTagCompound()
@@ -110,43 +110,29 @@ public abstract class EntityEtherGolem extends EntityCreature {
                             nbt.getInteger("TargetZ"));
                 }
 
-                commandQueue.addLast(
-                        new GolemTaskEntry(cmd, radius, target));
-
-                player.sendMessage(
-                        new net.minecraft.util.text.TextComponentString(
-                                "§dКоманда добавлена в очередь: §f"
-                                        + cmd.name()
-                                        + " §7(очередь: "
-                                        + commandQueue.size() + ")")
-                );
-
-                // Не тратим руну
+                commandQueue.addLast(new GolemTaskEntry(cmd, radius, target));
+                player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                        "§dКоманда добавлена: §f" + cmd.name()
+                                + " §7(очередь: " + commandQueue.size() + ")"));
                 return true;
             }
 
+            // 2) Shift + пустая рука — очистить очередь
             if (held.isEmpty() && player.isSneaking()) {
-                // Shift + ПКМ без предмета — очистить очередь
                 commandQueue.clear();
                 currentTask = null;
-                player.sendMessage(
-                        new net.minecraft.util.text.TextComponentString(
-                                "§7Очередь команд очищена."));
+                player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                        "§7Очередь очищена."));
                 return true;
             }
 
-            // Вместо showStatus — открываем GUI:
+            // 3) Пустая рука — открыть GUI
             if (held.isEmpty()) {
-                if (!world.isRemote) {
-                    player.openGui(
-                            EtherForge.instance,
-                            ModGuiHandler.GUI_GOLEM,
-                            world,
-                            getEntityId(), // передаём ID entity
-                            0,
-                            0
-                    );
-                }
+                player.openGui(
+                        com.etherforge.mod.EtherForge.instance,
+                        com.etherforge.mod.gui.ModGuiHandler.GUI_GOLEM,
+                        world,
+                        getEntityId(), 0, 0);
                 return true;
             }
         }
