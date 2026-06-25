@@ -1,5 +1,6 @@
 package com.etherforge.mod.gui;
 
+import com.etherforge.mod.entities.EntityEtherGolem;
 import com.etherforge.mod.tileentity.TileEntityEtherCondenser;
 import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
 import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
@@ -14,6 +15,7 @@ public class ModGuiHandler implements IGuiHandler {
     public static final int GUI_CONDENSER = 0;
     public static final int GUI_FURNACE   = 1;  // ← новый
     public static final int GUI_WORKBENCH = 2;
+    public static final int GUI_GOLEM = 3;
 
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player,
@@ -33,6 +35,18 @@ public class ModGuiHandler implements IGuiHandler {
         if (ID == GUI_WORKBENCH && te instanceof TileEntityEtherWorkbench) {
             return new ContainerEtherWorkbench(player.inventory, (TileEntityEtherWorkbench) te);
         }
+
+        if (ID == GUI_GOLEM) {
+            // x = entityId
+            net.minecraft.entity.Entity entity =
+                    world.getEntityByID(x);
+            if (entity instanceof EntityEtherGolem) {
+                return new ContainerGolem(
+                        player.inventory,
+                        (EntityEtherGolem) entity);
+            }
+        }
+
         return null;
     }
 
@@ -53,6 +67,16 @@ public class ModGuiHandler implements IGuiHandler {
         }
         if (ID == GUI_WORKBENCH && te instanceof TileEntityEtherWorkbench) {
             return new GuiEtherWorkbench(player.inventory, (TileEntityEtherWorkbench) te);
+        }
+
+        if (ID == GUI_GOLEM) {
+            net.minecraft.entity.Entity entity =
+                    world.getEntityByID(x);
+            if (entity instanceof EntityEtherGolem) {
+                return new GuiGolem(
+                        player.inventory,
+                        (EntityEtherGolem) entity);
+            }
         }
         return null;
     }

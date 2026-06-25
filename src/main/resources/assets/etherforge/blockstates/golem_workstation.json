@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "normal": { "model": "etherforge:golem_workstation" }
+  }
+}

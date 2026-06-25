@@ -1,14 +1,14 @@
 package com.etherforge.mod;
 
+import com.etherforge.mod.entities.EntityEtherealGolem;
+import com.etherforge.mod.entities.EntityMechGolem;
+import com.etherforge.mod.entities.EntityMorphoGolem;
 import com.etherforge.mod.gui.ModGuiHandler;
 import com.etherforge.mod.init.ModBlocks;
 import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.proxy.CommonProxy;
 import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
-import com.etherforge.mod.tileentity.TileEntityEtherCondenser;
-import com.etherforge.mod.tileentity.TileEntityEtherPipe;
-import com.etherforge.mod.tileentity.TileEntityEtherWorkbench;
-import com.etherforge.mod.tileentity.TileEntityResonanceFurnace;
+import com.etherforge.mod.tileentity.*;
 import com.etherforge.mod.util.Reference;
 import com.etherforge.mod.world.gen.ModWorldGen;
 import net.minecraftforge.fml.common.Mod;
@@ -62,7 +62,45 @@ public class EtherForge {
                 TileEntityEtherPipe.class,
                 Reference.MOD_ID + ":ether_pipe"
         );
+
+        GameRegistry.registerTileEntity(
+                TileEntityGolemWorkstation.class,
+                Reference.MOD_ID + ":golem_workstation"
+        );
         LOGGER.info("TileEntity зарегистрированы");
+
+        net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(
+                new net.minecraft.util.ResourceLocation(
+                        Reference.MOD_ID, "mech_golem"),
+                EntityMechGolem.class,
+                "mech_golem",
+                1,                    // ID
+                instance,
+                64,                   // tracking range
+                1,                    // update frequency
+                true                  // sendVelocityUpdates
+        );
+
+        net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(
+                new net.minecraft.util.ResourceLocation(
+                        Reference.MOD_ID, "morpho_golem"),
+                EntityMorphoGolem.class,
+                "morpho_golem",
+                2,
+                instance,
+                64, 1, true
+        );
+
+        net.minecraftforge.fml.common.registry.EntityRegistry.registerModEntity(
+                new net.minecraft.util.ResourceLocation(
+                        Reference.MOD_ID, "ethereal_golem"),
+                EntityEtherealGolem.class,
+                "ethereal_golem",
+                3,
+                instance,
+                64, 1, true
+        );
+
         LOGGER.info("EtherForge - PreInit завершён");
     }
 

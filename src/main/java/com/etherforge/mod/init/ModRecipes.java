@@ -143,5 +143,101 @@ public class ModRecipes {
                 'I', ModItems.CRYSTAL_IGNIS,
                 'F', net.minecraft.init.Blocks.FURNACE
         ).setRegistryName(Reference.MOD_ID, "resonance_furnace"));
+
+        // Ядро Механического Голема
+// [V][U][V]
+// [U][I][U]   V=Volta, U=Umbra, I=Iron Block
+// [V][U][V]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.GOLEM_CORE_MECH),
+                "VUV", "UIU", "VUV",
+                'V', ModItems.CRYSTAL_VOLTA,
+                'U', ModItems.CRYSTAL_UMBRA,
+                'I', net.minecraft.init.Blocks.IRON_BLOCK
+        ).setRegistryName(Reference.MOD_ID, "golem_core_mech"));
+
+// Руна Idle — простейшая
+// [ ][L][ ]
+// [L][E][L]   L=Lux, E=Ether Crystal
+// [ ][L][ ]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.RUNE_IDLE),
+                " L ", "LEL", " L ",
+                'L', ModItems.CRYSTAL_LUX,
+                'E', ModItems.ETHER_CRYSTAL
+        ).setRegistryName(Reference.MOD_ID, "rune_idle"));
+
+// Руна Collect
+// [E][L][E]
+// [L][A][L]   A=Aqua
+// [E][L][E]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.RUNE_COLLECT),
+                "ELE", "LAL", "ELE",
+                'E', ModItems.ETHER_CRYSTAL,
+                'L', ModItems.CRYSTAL_LUX,
+                'A', ModItems.CRYSTAL_AQUA
+        ).setRegistryName(Reference.MOD_ID, "rune_collect"));
+
+// Руна Return
+// [ ][A][ ]
+// [A][U][A]   U=Umbra
+// [ ][A][ ]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.RUNE_RETURN),
+                " A ", "AUA", " A ",
+                'A', ModItems.CRYSTAL_AQUA,
+                'U', ModItems.CRYSTAL_UMBRA
+        ).setRegistryName(Reference.MOD_ID, "rune_return"));
+
+// Руна Mine
+// [I][V][I]
+// [V][E][V]   I=Iron, V=Volta
+// [I][V][I]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.RUNE_MINE),
+                "IVI", "VEV", "IVI",
+                'I', net.minecraft.init.Items.IRON_INGOT,
+                'V', ModItems.CRYSTAL_VOLTA,
+                'E', ModItems.ETHER_CRYSTAL
+        ).setRegistryName(Reference.MOD_ID, "rune_mine"));
+
+        // Стол Голема
+// [U][V][U]
+// [V][I][V]   I=Iron Block, V=Volta, U=Umbra
+// [I][I][I]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModBlocks.GOLEM_WORKSTATION),
+                "UVU",
+                "VIV",
+                "III",
+                'U', ModItems.CRYSTAL_UMBRA,
+                'V', ModItems.CRYSTAL_VOLTA,
+                'I', net.minecraft.init.Blocks.IRON_BLOCK
+        ).setRegistryName(Reference.MOD_ID, "golem_workstation"));
+
+        // Ядро Морфо Голема
+// [A][I][A]
+// [I][S][I]   A=Aqua, I=Ignis, S=Slime Block
+// [A][I][A]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.GOLEM_CORE_MORPHO),
+                "AIA", "ISI", "AIA",
+                'A', ModItems.CRYSTAL_AQUA,
+                'I', ModItems.CRYSTAL_IGNIS,
+                'S', net.minecraft.init.Blocks.SLIME_BLOCK
+        ).setRegistryName(Reference.MOD_ID, "golem_core_morpho"));
+
+// Ядро Эфирного Голема
+// [L][U][L]
+// [U][E][U]   L=Lux, U=Umbra, E=Ether Block
+// [L][U][L]
+        registry.register(new ShapedOreRecipe(null,
+                new ItemStack(ModItems.GOLEM_CORE_ETHEREAL),
+                "LUL", "UEU", "LUL",
+                'L', ModItems.CRYSTAL_LUX,
+                'U', ModItems.CRYSTAL_UMBRA,
+                'E', ModBlocks.ETHER_BLOCK
+        ).setRegistryName(Reference.MOD_ID, "golem_core_ethereal"));
     }
 }

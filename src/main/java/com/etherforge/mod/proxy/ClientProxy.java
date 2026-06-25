@@ -1,5 +1,11 @@
 package com.etherforge.mod.proxy;
 
+import com.etherforge.mod.client.render.RenderEtherealGolem;
+import com.etherforge.mod.client.render.RenderMechGolem;
+import com.etherforge.mod.client.render.RenderMorphoGolem;
+import com.etherforge.mod.entities.EntityEtherealGolem;
+import com.etherforge.mod.entities.EntityMechGolem;
+import com.etherforge.mod.entities.EntityMorphoGolem;
 import com.etherforge.mod.init.ModBlocks;
 import com.etherforge.mod.init.ModItems;
 import com.etherforge.mod.util.Reference;
@@ -15,7 +21,20 @@ public class ClientProxy extends CommonProxy {
 
     @Override
     public void preInit() {
+        net.minecraftforge.fml.client.registry.RenderingRegistry
+                .registerEntityRenderingHandler(
+                        EntityMechGolem.class,
+                        RenderMechGolem::new);
 
+        net.minecraftforge.fml.client.registry.RenderingRegistry
+                .registerEntityRenderingHandler(
+                        EntityMorphoGolem.class,
+                        RenderMorphoGolem::new);
+
+        net.minecraftforge.fml.client.registry.RenderingRegistry
+                .registerEntityRenderingHandler(
+                        EntityEtherealGolem.class,
+                        RenderEtherealGolem::new);
     }
 
     @Override
@@ -39,6 +58,15 @@ public class ClientProxy extends CommonProxy {
         registerItemModel(ModItems.CATALYST_SURGE, "catalyst_surge");
         registerItemModel(ModItems.CATALYST_SPARK, "catalyst_spark");
         registerItemModel(ModItems.CATALYST_EMBER, "catalyst_ember");
+        registerItemModel(ModItems.GOLEM_CORE_MECH,     "golem_core_mech");
+        registerItemModel(ModItems.GOLEM_CORE_MORPHO,   "golem_core_morpho");
+        registerItemModel(ModItems.GOLEM_CORE_ETHEREAL, "golem_core_ethereal");
+        registerItemModel(ModItems.RUNE_IDLE,           "rune_idle");
+        registerItemModel(ModItems.RUNE_COLLECT,        "rune_collect");
+        registerItemModel(ModItems.RUNE_MINE,           "rune_mine");
+        registerItemModel(ModItems.RUNE_RETURN,         "rune_return");
+        registerItemModel(ModItems.RUNE_TRANSFER,       "rune_transfer");
+
 
         // ── Блоки ───────────────────────────────────────────────
         registerBlockModel(ModBlocks.ETHER_ORE,       "ether_ore");
@@ -51,6 +79,8 @@ public class ClientProxy extends CommonProxy {
         registerBlockModel(ModBlocks.ETHER_PIPE,            "ether_pipe");
         registerBlockModel(ModBlocks.ETHER_PIPE_REINFORCED, "ether_pipe_reinforced");
         registerBlockModel(ModBlocks.ETHER_PIPE_RESONANT,   "ether_pipe_resonant");
+        registerBlockModel(ModBlocks.GOLEM_WORKSTATION, "golem_workstation");
+        registerBlockModel(ModBlocks.GOLEM_WORKSTATION, "golem_workstation");
     }
 
     // Явно указываем имя без автоматического getRegistryName()
