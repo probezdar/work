@@ -12,6 +12,7 @@ tile.etherforge.ether_workbench.name=Ether Workbench
 tile.etherforge.ether_pipe.name=Ether Pipe
 tile.etherforge.ether_pipe_reinforced.name=Reinforced Ether Pipe
 tile.etherforge.ether_pipe_resonant.name=Resonant Ether Pipe
+tile.etherforge.golem_workstation.name=Golem Workstation
 
 # Предметы (префикс item. + unlocalizedName)
 item.etherforge.ether_crystal.name=Ether Crystal
@@ -29,3 +30,11 @@ item.etherforge.catalyst_depth.name=Depth Catalyst
 item.etherforge.catalyst_spark.name=Spark Catalyst
 item.etherforge.catalyst_eclipse.name=Eclipse Catalyst
 item.etherforge.catalyst_ember.name=Ember Catalyst
+item.etherforge.rune_idle.name=Rune of Inaction
+item.etherforge.rune_collect.name=Rune of Gathering
+item.etherforge.rune_mine.name=Rune of Mining
+item.etherforge.rune_return.name=Rune of Return
+item.etherforge.rune_transfer.name=Rune of Transferring
+item.etherforge.golem_core_mech.name=Mechanical Golem Core
+item.etherforge.golem_core_morpho.name=Morpho Golem Core
+item.etherforge.golem_core_ethereal.name=Ethereal Golem Core

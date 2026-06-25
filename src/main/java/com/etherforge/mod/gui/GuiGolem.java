@@ -1,8 +1,6 @@
 package com.etherforge.mod.gui;
 
-import com.etherforge.mod.EtherForge;
 import com.etherforge.mod.entities.EntityEtherGolem;
-import com.etherforge.mod.golem.GolemCommand;
 import com.etherforge.mod.util.Reference;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -11,67 +9,71 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
 
 public class GuiGolem extends GuiContainer {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             Reference.MOD_ID, "textures/gui/golem.png");
 
-    private static final int COLOR_TITLE  = 0x404040;
-    private static final int COLOR_LABEL  = 0x666666;
-    private static final int COLOR_HP     = 0xFF4444;
-    private static final int COLOR_TASK   = 0xAA44FF;
-    private static final int COLOR_QUEUE  = 0x7777AA;
-    private static final int COLOR_NONE   = 0x888888;
+    // Цвета
+    private static final int C_TITLE = 0xDDCCFF;
+    private static final int C_LABEL = 0xAA99CC;
+    private static final int C_HP    = 0xFF4444;
+    private static final int C_TASK  = 0xCC88FF;
+    private static final int C_QUEUE = 0x9977BB;
+    private static final int C_NONE  = 0x665577;
 
     private final EntityEtherGolem golem;
 
     // Кнопки
-    private static final int BTN_CLEAR   = 0;
-    private static final int BTN_RETURN  = 1;
-    private static final int BTN_PAUSE   = 2;
+    private static final int BTN_CLEAR  = 0;
+    private static final int BTN_RETURN = 1;
+    private static final int BTN_PAUSE  = 2;
 
-    public GuiGolem(InventoryPlayer playerInv,
-                    EntityEtherGolem golem) {
+    public GuiGolem(InventoryPlayer playerInv, EntityEtherGolem golem) {
         super(new ContainerGolem(playerInv, golem));
-        this.golem  = golem;
-        this.xSize  = 176;
-        this.ySize  = 200;
+        this.golem = golem;
+        this.xSize = 176;
+        this.ySize = 222; // высота как у кондесатора
     }
 
     @Override
     public void initGui() {
         super.initGui();
+        int gx = (width  - xSize) / 2;
+        int gy = (height - ySize) / 2;
 
-        int x = (width  - xSize) / 2;
-        int y = (height - ySize) / 2;
-
-        // Очистить очередь
-        buttonList.add(new GuiButton(BTN_CLEAR, x + 8, y + 108,
-                50, 16, "Очистить"));
-
-        // Вернуть домой
-        buttonList.add(new GuiButton(BTN_RETURN, x + 62, y + 108,
-                50, 16, "Домой"));
-
-        // Пауза / Возобновить
-        buttonList.add(new GuiButton(BTN_PAUSE, x + 116, y + 108,
-                50, 16, "Пауза"));
+        buttonList.add(new GuiButton(BTN_CLEAR,
+                gx + 8,   gy + 108, 50, 14, "Очистить"));
+        buttonList.add(new GuiButton(BTN_RETURN,
+                gx + 62,  gy + 108, 50, 14, "Домой"));
+        buttonList.add(new GuiButton(BTN_PAUSE,
+                gx + 116, gy + 108, 50, 14, "Пауза"));
     }
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        super.actionPerformed(button);
-
-        // Отправляем пакет на сервер
-        // (пока через чат-команду для простоты, позже через пакеты)
+        // TODO: заменить на пакеты
         if (button.id == BTN_CLEAR) {
-            mc.player.sendChatMessage("/golem_clear " + golem.getEntityId());
-        } else if (button.id == BTN_RETURN) {
-            mc.player.sendChatMessage("/golem_return " + golem.getEntityId());
+            golem.commandQueue.clear();
+            golem.currentTask = null;
         }
+
+        if (button.id == BTN_RETURN) {
+            golem.commandQueue.addFirst(
+                    new EntityEtherGolem.GolemTaskEntry(
+                            com.etherforge.mod.golem.GolemCommand.RETURN,
+                            8, null));
+        }
+
+        // BTN_PAUSE — пока не реализован
+        if (button.id == BTN_PAUSE) {
+            // TODO: флаг паузы в EntityEtherGolem
+        }
+    }
+
+    private net.minecraft.world.World world() {
+        return mc.world;
     }
 
     @Override
@@ -87,74 +89,77 @@ public class GuiGolem extends GuiContainer {
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 
-        // ── Заголовок ────────────────────────────────
-        String title = getGolemTitle();
+        // ── Заголовок ─────────────────────────────────────
+        String title = getTitle();
         fontRenderer.drawString(title,
                 xSize / 2 - fontRenderer.getStringWidth(title) / 2,
-                6, COLOR_TITLE);
+                6, C_TITLE);
 
-        // ── HP ───────────────────────────────────────
-        String hp = "HP: " + (int) golem.getHealth()
-                + " / " + (int) golem.getMaxHealth();
-        fontRenderer.drawString(hp, 8, 18, COLOR_HP);
+        // ── HP ────────────────────────────────────────────
+        int maxHp = (int) golem.getMaxHealth();
+        int curHp = (int) golem.getHealth();
+        // Ограничиваем для отображения
+        int displayMax = Math.min(maxHp, 9999);
+        String hpStr = "HP: " + curHp + " / " + displayMax;
+        fontRenderer.drawString(hpStr, 8, 18, C_HP);
 
-        // ── HP Bar ───────────────────────────────────
-        int barW = (int) (80 * golem.getHealth() / golem.getMaxHealth());
-        drawRect(8, 26, 88, 32, 0xFF330000);       // фон
-        drawRect(8, 26, 8 + barW, 32, 0xFFFF4444); // заполнение
-
-        // ── Инвентарь голема ─────────────────────────
-        fontRenderer.drawString("Инвентарь:",  8, 46, COLOR_LABEL);
-        // слоты отрисовываются автоматически контейнером
-
-        // ── Текущая задача ───────────────────────────
-        fontRenderer.drawString("Задача:", 8, 72, COLOR_LABEL);
-        String taskStr;
-        if (golem.currentTask != null) {
-            taskStr = "§d" + golem.currentTask.command.name()
-                    + " §7(r=" + golem.currentTask.radius + ")";
-        } else {
-            taskStr = "Нет";
+        // HP Bar
+        int barTotal = 80;
+        // Заменить расчёт barFill:
+        int barFill = 0;
+        if (maxHp > 0) {
+            // Используем float чтобы избежать потери точности
+            barFill = (int) Math.min(barTotal,
+                    (float) curHp / maxHp * barTotal);
         }
-        fontRenderer.drawString(taskStr, 8, 81, COLOR_TASK);
+        drawRect(8,  28, 8 + barTotal, 33, 0xFF220000); // фон
+        drawRect(8,  28, 8 + barFill,  33, 0xFFDD3333); // заполнение
+        drawRect(8,  28, 8 + barTotal, 28, 0xFF550000); // верх
+        drawRect(8,  32, 8 + barTotal, 33, 0xFF550000); // низ
 
-        // ── Очередь команд ───────────────────────────
-        fontRenderer.drawString("Очередь (" +
-                golem.commandQueue.size() + "):", 8, 91, COLOR_LABEL);
+        // ── Текущая задача ────────────────────────────────
+        fontRenderer.drawString("Задача:", 20, 62, C_LABEL);
+        if (golem.currentTask != null) {
+            fontRenderer.drawString(
+                    golem.currentTask.command.name()
+                            + "  r=" + golem.currentTask.radius,
+                    50, 62, C_TASK);
+        } else {
+            fontRenderer.drawString("Нет", 50, 62, C_NONE);
+        }
 
-        int qy = 100;
+        // ── Очередь ───────────────────────────────────────
+        fontRenderer.drawString(
+                "Очередь (" + golem.commandQueue.size() + "):",
+                20, 80, C_LABEL);
+
+        int qy   = 89;
         int shown = 0;
-        for (EntityEtherGolem.GolemTaskEntry entry : golem.commandQueue) {
-            if (shown >= 3) { // показываем максимум 3
-                fontRenderer.drawString("...", 12, qy, COLOR_NONE);
+        for (EntityEtherGolem.GolemTaskEntry e : golem.commandQueue) {
+            if (shown >= 3) {
+                fontRenderer.drawString("...", 28, qy, C_NONE);
                 break;
             }
             fontRenderer.drawString(
-                    "• " + entry.command.name()
-                            + " r=" + entry.radius,
-                    12, qy, COLOR_QUEUE);
-            qy += 9;
+                    "• " + e.command.name() + " r=" + e.radius,
+                    28, qy, C_QUEUE);
+            qy   += 9;
             shown++;
         }
 
         if (golem.commandQueue.isEmpty() && golem.currentTask == null) {
-            fontRenderer.drawString("Пусто", 12, qy, COLOR_NONE);
+            fontRenderer.drawString("Пусто", 28, qy, C_NONE);
         }
 
-        // ── Инвентарь игрока ─────────────────────────
-        fontRenderer.drawString("Инвентарь", 8, 128, COLOR_TITLE);
     }
 
-    private String getGolemTitle() {
-        if (golem instanceof com.etherforge.mod.entities.EntityMechGolem) {
-            return "Механический Голем";
-        } else if (golem instanceof
-                com.etherforge.mod.entities.EntityMorphoGolem) {
-            return "Морфо Голем";
-        } else if (golem instanceof
-                com.etherforge.mod.entities.EntityEtherealGolem) {
-            return "Эфирный Голем";
-        }
-        return "Голем";
+    private String getTitle() {
+        if (golem instanceof com.etherforge.mod.entities.EntityMechGolem)
+            return "Mechanical Golem";
+        if (golem instanceof com.etherforge.mod.entities.EntityMorphoGolem)
+            return "Morpho Golem";
+        if (golem instanceof com.etherforge.mod.entities.EntityEtherealGolem)
+            return "Ether Golem";
+        return "Golem";
     }
 }

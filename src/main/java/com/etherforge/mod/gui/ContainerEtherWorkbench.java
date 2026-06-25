@@ -25,10 +25,10 @@ public class ContainerEtherWorkbench extends Container {
         this.workbench = workbench;
 
         // ── Сетка 2x2: слоты 0-3 ────────────────────
-        addSlotToContainer(new Slot(workbench, 0, 76, 36));
-        addSlotToContainer(new Slot(workbench, 1, 94, 36));
-        addSlotToContainer(new Slot(workbench, 2, 76, 54));
-        addSlotToContainer(new Slot(workbench, 3, 94, 54));
+        addSlotToContainer(new Slot(workbench, 0, 77, 37));
+        addSlotToContainer(new Slot(workbench, 1, 95, 37));
+        addSlotToContainer(new Slot(workbench, 2, 77, 55));
+        addSlotToContainer(new Slot(workbench, 3, 95, 55));
 
         // ── Катализаторы: слоты 4-7 ─────────────────
         // Только предметы с isCatalyst()
@@ -45,7 +45,7 @@ public class ContainerEtherWorkbench extends Container {
         }
 
         // ── Результат: слот 8 ────────────────────────
-        addSlotToContainer(new Slot(workbench, SLOT_OUTPUT, 148, 45) {
+        addSlotToContainer(new Slot(workbench, SLOT_OUTPUT, 149, 46) {
             @Override
             public boolean isItemValid(ItemStack stack) {
                 return false; // нельзя класть вручную
@@ -79,20 +79,20 @@ public class ContainerEtherWorkbench extends Container {
     // ═══════════════════════════════════════════
     private int getCatalystX(int slot) {
         switch (slot) {
-            case 4: return 58;  // лево
-            case 5: return 85;  // верх
-            case 6: return 112; // право
-            case 7: return 85;  // низ
+            case 4: return 59;  // лево
+            case 5: return 86;  // верх
+            case 6: return 113; // право
+            case 7: return 86;  // низ
             default: return 0;
         }
     }
 
     private int getCatalystY(int slot) {
         switch (slot) {
-            case 4: return 45;
-            case 5: return 18;
-            case 6: return 45;
-            case 7: return 72;
+            case 4: return 46;
+            case 5: return 19;
+            case 6: return 46;
+            case 7: return 73;
             default: return 0;
         }
     }

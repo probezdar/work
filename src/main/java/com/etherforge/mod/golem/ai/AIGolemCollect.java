@@ -25,10 +25,13 @@ public class AIGolemCollect extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
+        System.out.println("[AI] shouldExecute: currentTask="
+                + golem.currentTask
+                + " queueSize=" + golem.commandQueue.size());
+
         if (golem.currentTask == null) return false;
         if (golem.currentTask.command != GolemCommand.COLLECT) return false;
         if (golem.isInventoryFull()) {
-            // Инвентарь полон — переходим к следующей задаче
             golem.advanceQueue();
             return false;
         }

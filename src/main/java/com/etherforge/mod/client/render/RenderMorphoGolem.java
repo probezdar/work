@@ -1,4 +1,3 @@
-
 package com.etherforge.mod.client.render;
 
 import com.etherforge.mod.entities.EntityMorphoGolem;
@@ -14,7 +13,7 @@ public class RenderMorphoGolem extends RenderBiped<EntityMorphoGolem> {
             Reference.MOD_ID, "textures/entity/morpho_golem.png");
 
     public RenderMorphoGolem(RenderManager manager) {
-        super(manager, new ModelBiped(), 0.5f);
+        super(manager, new ModelBiped(0.0f, 0.0f, 64, 64), 0.4f);
     }
 
     @Override

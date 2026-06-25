@@ -12,6 +12,7 @@ tile.etherforge.ether_workbench.name=Эфирный Верстак
 tile.etherforge.ether_pipe.name=Эфирная Труба
 tile.etherforge.ether_pipe_reinforced.name=Укрепленная Эфирная Труба
 tile.etherforge.ether_pipe_resonant.name=Резонансная Эфирная Труба
+tile.etherforge.golem_workstation.name=Рабочая станция големов
 
 # Предметы
 item.etherforge.ether_crystal.name=Эфирный Кристалл
@@ -29,3 +30,11 @@ item.etherforge.catalyst_depth.name=Катализатор Глубины
 item.etherforge.catalyst_spark.name=Катализатор Искры
 item.etherforge.catalyst_eclipse.name=Катализатор Затмения
 item.etherforge.catalyst_ember.name=Катализатор Уголька
+item.etherforge.rune_idle.name=Руна Бездействия
+item.etherforge.rune_collect.name=Руна Сбора
+item.etherforge.rune_mine.name=Руна Шахтёрства
+item.etherforge.rune_return.name=Руна Возврата
+item.etherforge.rune_transfer.name=Руна Переноса
+item.etherforge.golem_core_mech.name=Ядро Механического Голема
+item.etherforge.golem_core_morpho.name=Ядро Морфо Голема
+item.etherforge.golem_core_ethereal.name=Ядро Эфирного Голема

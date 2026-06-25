@@ -109,7 +109,6 @@ public abstract class EntityEtherGolem extends EntityCreature {
                             nbt.getInteger("TargetY"),
                             nbt.getInteger("TargetZ"));
                 }
-
                 commandQueue.addLast(new GolemTaskEntry(cmd, radius, target));
                 player.sendMessage(new net.minecraft.util.text.TextComponentString(
                         "§dКоманда добавлена: §f" + cmd.name()

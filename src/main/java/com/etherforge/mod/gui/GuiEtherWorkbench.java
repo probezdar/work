@@ -39,6 +39,6 @@ public class GuiEtherWorkbench extends GuiContainer {
         fontRenderer.drawString(title,
                 xSize / 2 - fontRenderer.getStringWidth(title) / 2,
                 6, 0x404040);
-        fontRenderer.drawString("Inventory", 8, 92, 0x404040);
+        fontRenderer.drawString("Inventory", 8, 90, 0x404040);
     }
 }

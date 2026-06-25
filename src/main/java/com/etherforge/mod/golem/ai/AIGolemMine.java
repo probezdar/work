@@ -114,14 +114,17 @@ public class AIGolemMine extends EntityAIBase {
 
     @Override
     public void resetTask() {
+        // Сохраняем ссылку ДО обнуления
+        BlockPos blockToReset = targetBlock;
+
         targetBlock = null;
         mineTimer   = 0;
         golem.getNavigator().clearPath();
 
-        // Сбрасываем анимацию разрушения
-        if (targetBlock != null) {
+        // Сбрасываем анимацию разрушения если блок был
+        if (blockToReset != null) {
             golem.world.sendBlockBreakProgress(
-                    golem.getEntityId(), targetBlock, -1);
+                    golem.getEntityId(), blockToReset, -1);
         }
     }
 

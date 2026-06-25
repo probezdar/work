@@ -49,12 +49,17 @@ public class GuiEtherCondenser extends GuiContainer {
             barHeight = condenser.getEtherStored() * 60
                     / condenser.getMaxEther();
         }
+// Ограничиваем
+        barHeight = Math.min(barHeight, 60);
+
         if (barHeight > 0) {
             drawTexturedModalRect(
-                    x + 8,
-                    y + 19 + (60 - barHeight),
-                    176, 60 - barHeight,
-                    12, barHeight
+                    x + 8,                    // X полоски на экране
+                    y + 19 + (60 - barHeight),// Y — растём снизу вверх
+                    176,                      // U в текстуре
+                    60 - barHeight,           // V в текстуре
+                    12,                       // ширина
+                    barHeight                 // высота
             );
         }
     }

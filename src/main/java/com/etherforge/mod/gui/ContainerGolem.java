@@ -15,28 +15,29 @@ public class ContainerGolem extends Container {
     // Слоты 2-28 — инвентарь игрока (3 ряда)
     // Слоты 29-37 — хотбар
 
-    public ContainerGolem(InventoryPlayer playerInv,
-                          EntityEtherGolem golem) {
+    public ContainerGolem(InventoryPlayer playerInv, EntityEtherGolem golem) {
         this.golem = golem;
 
-        // Инвентарь голема — 2 слота
         IInventory golemInv = new GolemInventoryWrapper(golem);
+
+        // ── Инвентарь голема — 2 слота ────────────────
         addSlotToContainer(new Slot(golemInv, 0, 62, 35));
         addSlotToContainer(new Slot(golemInv, 1, 80, 35));
 
-        // Инвентарь игрока
+        // ── Инвентарь игрока: слоты 2-28 ─────────────
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlotToContainer(new Slot(playerInv,
                         col + row * 9 + 9,
-                        8 + col * 18, 84 + row * 18));
+                        9 + col * 18,
+                        131 + row * 18));
             }
         }
 
-        // Хотбар
+        // ── Хотбар: слоты 29-37 ───────────────────────
         for (int col = 0; col < 9; col++) {
             addSlotToContainer(new Slot(playerInv, col,
-                    8 + col * 18, 142));
+                    9 + col * 18, 189));
         }
     }
 
