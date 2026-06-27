@@ -1,20 +1,21 @@
+// client/render/RenderEtherealGolem.java
 package com.etherforge.mod.client.render;
 
+import com.etherforge.mod.client.model.ModelEtherealGolem;
 import com.etherforge.mod.entities.EntityEtherealGolem;
 import com.etherforge.mod.util.Reference;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.entity.RenderBiped;
+import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 
-public class RenderEtherealGolem extends RenderBiped<EntityEtherealGolem> {
+public class RenderEtherealGolem extends RenderLiving<EntityEtherealGolem> {
 
     private static final ResourceLocation TEXTURE = new ResourceLocation(
             Reference.MOD_ID, "textures/entity/ethereal_golem.png");
 
     public RenderEtherealGolem(RenderManager manager) {
-        super(manager, new ModelBiped(0.0f, 0.0f, 64, 64), 0.4f);
+        super(manager, new ModelEtherealGolem(), 0.4f);
     }
 
     @Override
