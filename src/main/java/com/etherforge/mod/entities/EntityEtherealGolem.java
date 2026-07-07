@@ -22,7 +22,7 @@ public class EntityEtherealGolem extends EntityEtherGolem {
 
     public EntityEtherealGolem(World world) {
         super(world);
-        setSize(0.6f, 1.8f);
+        setSize(0.7f, 1.2f);
         setNoGravity(true); // левитирует
     }
 

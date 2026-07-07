@@ -6,6 +6,7 @@ import com.etherforge.mod.entities.EntityMorphoGolem;
 import com.etherforge.mod.gui.ModGuiHandler;
 import com.etherforge.mod.init.ModBlocks;
 import com.etherforge.mod.init.ModItems;
+import com.etherforge.mod.network.PacketHandler;
 import com.etherforge.mod.proxy.CommonProxy;
 import com.etherforge.mod.recipes.EtherWorkbenchRecipeRegistry;
 import com.etherforge.mod.tileentity.*;
@@ -45,6 +46,7 @@ public class EtherForge {
     public void preInit(FMLPreInitializationEvent event) {
         LOGGER.info("EtherForge - PreInit начат");
         proxy.preInit(); // ← возвращаем
+        PacketHandler.register();
         GameRegistry.registerTileEntity(
                 TileEntityEtherCondenser.class,
                 Reference.MOD_ID + ":ether_condenser"

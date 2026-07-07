@@ -15,7 +15,7 @@ public class EntityMorphoGolem extends EntityEtherGolem {
 
     public EntityMorphoGolem(World world) {
         super(world);
-        setSize(0.6f, 1.8f);
+        setSize(0.7f, 1.2f);
     }
 
     @Override

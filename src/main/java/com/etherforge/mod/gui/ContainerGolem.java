@@ -1,79 +1,95 @@
+// gui/ContainerGolem.java
 package com.etherforge.mod.gui;
 
 import com.etherforge.mod.entities.EntityEtherGolem;
-import com.etherforge.mod.golem.GolemCommand;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.*;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 public class ContainerGolem extends Container {
 
-    public final EntityEtherGolem golem;
+    private final EntityEtherGolem        golem;
+    private final GolemInventoryWrapper   golemInv;
 
-    // Слоты 0-1 — инвентарь голема
-    // Слоты 2-28 — инвентарь игрока (3 ряда)
-    // Слоты 29-37 — хотбар
+    // Позиции слотов голема (3x3 сетка)
+    // Начало x=8, y=38
+    private static final int GOLEM_SLOT_X = 8;
+    private static final int GOLEM_SLOT_Y = 38;
 
-    public ContainerGolem(InventoryPlayer playerInv, EntityEtherGolem golem) {
-        this.golem = golem;
+    public ContainerGolem(InventoryPlayer playerInv,
+                          EntityEtherGolem golem) {
+        this.golem   = golem;
+        this.golemInv = new GolemInventoryWrapper(golem);
 
-        IInventory golemInv = new GolemInventoryWrapper(golem);
-
-        // ── Инвентарь голема — 2 слота ────────────────
-        addSlotToContainer(new Slot(golemInv, 0, 62, 35));
-        addSlotToContainer(new Slot(golemInv, 1, 80, 35));
-
-        // ── Инвентарь игрока: слоты 2-28 ─────────────
+        // ── Слоты голема (3x3) ──────────────────────
         for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                addSlotToContainer(new Slot(playerInv,
-                        col + row * 9 + 9,
-                        9 + col * 18,
-                        131 + row * 18));
+            for (int col = 0; col < 3; col++) {
+                addSlotToContainer(new Slot(
+                        golemInv,
+                        row * 3 + col,
+                        GOLEM_SLOT_X + col * 20,
+                        GOLEM_SLOT_Y + row * 20));
             }
         }
 
-        // ── Хотбар: слоты 29-37 ───────────────────────
+        // ── Инвентарь игрока (3 строки) ─────────────
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                addSlotToContainer(new Slot(
+                        playerInv,
+                        col + row * 9 + 9,
+                        8 + col * 18,
+                        130 + row * 18));
+            }
+        }
+
+        // ── Хотбар ──────────────────────────────────
         for (int col = 0; col < 9; col++) {
-            addSlotToContainer(new Slot(playerInv, col,
-                    9 + col * 18, 189));
+            addSlotToContainer(new Slot(
+                    playerInv,
+                    col,
+                    8 + col * 18,
+                    188));
         }
     }
 
+    // ── Shift+клик ──────────────────────────────────
     @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int index) {
-        ItemStack copy = ItemStack.EMPTY;
+        ItemStack result = ItemStack.EMPTY;
         Slot slot = inventorySlots.get(index);
-        if (slot == null || !slot.getHasStack()) return copy;
 
-        ItemStack stack = slot.getStack();
-        copy = stack.copy();
+        if (slot == null || !slot.getHasStack()) return result;
 
-        if (index < 2) {
-            // Из голема → в инвентарь
-            if (!mergeItemStack(stack, 2, 38, true)) {
+        ItemStack stack    = slot.getStack();
+        result = stack.copy();
+
+        // Из слотов голема → в инвентарь игрока
+        if (index < 9) {
+            if (!mergeItemStack(stack, 9, inventorySlots.size(), true)) {
                 return ItemStack.EMPTY;
             }
-        } else {
-            // Из инвентаря → в голема
-            if (!mergeItemStack(stack, 0, 2, false)) {
+        }
+        // Из инвентаря игрока → в слоты голема
+        else {
+            if (!mergeItemStack(stack, 0, 9, false)) {
                 return ItemStack.EMPTY;
             }
         }
 
-        if (stack.isEmpty()) slot.putStack(ItemStack.EMPTY);
-        else slot.onSlotChanged();
+        if (stack.isEmpty()) {
+            slot.putStack(ItemStack.EMPTY);
+        } else {
+            slot.onSlotChanged();
+        }
 
-        if (stack.getCount() == copy.getCount()) return ItemStack.EMPTY;
-        slot.onTake(player, stack);
-        return copy;
+        return result;
     }
 
     @Override
     public boolean canInteractWith(EntityPlayer player) {
-        // Закрыть GUI если голем далеко или мёртв
-        return !golem.isDead
-                && golem.getDistance(player) < 8.0;
+        return player.getDistanceSq(golem) < 64.0;
     }
 }

@@ -32,96 +32,64 @@ public class ModelEtherGolem extends ModelBase {
         textureWidth  = 64;
         textureHeight = 64;
 
+        // СДВИГ всех частей вниз на +7 по Y
+        // чтобы низ ног (был Y=17) стал Y=24 = земля
+
         // ══════════════════════════════════════
-        //  ГОЛОВА
-        //  rotationPoint = верх тела (Y=4 от
-        //  начала координат модели)
-        //  Box: -3..3, -6..0, -3..3  (6x6x6)
+        //  ГОЛОВА  (было Y=4 → стало Y=11)
         // ══════════════════════════════════════
         head = new ModelRenderer(this, 0, 0);
-        head.setRotationPoint(0.0f, 4.0f, 0.0f);
+        head.setRotationPoint(0.0f, 11.0f, 0.0f);   // было 4.0f
         head.addBox(-3.0f, -6.0f, -3.0f, 6, 6, 6);
 
-        // Кристалл сверху — дочерний к голове
         headDetail = new ModelRenderer(this, 24, 0);
         headDetail.setRotationPoint(0.0f, 0.0f, 0.0f);
         headDetail.addBox(-1.0f, -8.0f, -1.0f, 2, 2, 2);
-        // Добавляем как child — следует за головой автоматически
         head.addChild(headDetail);
 
         // ══════════════════════════════════════
-        //  ТЕЛО
-        //  rotationPoint = (0, 4, 0)
-        //  Box: -4..4, 0..8, -2..2  (8x8x4)
+        //  ТЕЛО  (было Y=4 → стало Y=11)
         // ══════════════════════════════════════
         body = new ModelRenderer(this, 16, 16);
-        body.setRotationPoint(0.0f, 4.0f, 0.0f);
+        body.setRotationPoint(0.0f, 11.0f, 0.0f);   // было 4.0f
         body.addBox(-4.0f, 0.0f, -2.0f, 8, 8, 4);
 
-        // Панель на груди — дочерняя к телу
         bodyPanel = new ModelRenderer(this, 40, 16);
         bodyPanel.setRotationPoint(0.0f, 0.0f, 0.0f);
-        // Чуть выступает вперёд (-2.5f по Z вместо -2.0f)
         bodyPanel.addBox(-2.0f, 1.5f, -2.5f, 4, 3, 1);
         body.addChild(bodyPanel);
 
         // ══════════════════════════════════════
-        //  РУКИ
-        //
-        //  КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ:
-        //  rotationPoint должна быть на плече —
-        //  т.е. вплотную к телу по X
-        //
-        //  Тело занимает X: -4..4
-        //  Левая рука начинается от X=4 (правый
-        //  борт тела если смотреть спереди —
-        //  это левая рука голема)
-        //
-        //  rotationPoint.X = +5  (левая)
-        //  rotationPoint.X = -5  (правая)
-        //  rotationPoint.Y = 5   (уровень плеча)
-        //
-        //  Box рисуется ОТНОСИТЕЛЬНО rotationPoint:
-        //  от 0 до +3 по X (рука идёт наружу)
+        //  РУКИ  (было Y=5 → стало Y=12)
         // ══════════════════════════════════════
-
-        // Левая рука (с точки зрения голема — его левая)
         armLeft = new ModelRenderer(this, 0, 16);
-        armLeft.setRotationPoint(4.0f, 5.0f, 0.0f);
-        // Box: 0..3, -1..5, -1.5..1.5
+        armLeft.setRotationPoint(4.0f, 12.0f, 0.0f);  // было 5.0f
         armLeft.addBox(0.0f, -1.0f, -1.5f, 3, 6, 3);
 
-        // Наплечник — дочерний к armLeft
-        // Позиция относительно точки вращения руки
         armLeftPad = new ModelRenderer(this, 0, 28);
         armLeftPad.setRotationPoint(0.0f, 0.0f, 0.0f);
         armLeftPad.addBox(-0.5f, -2.5f, -2.0f, 4, 2, 4);
         armLeft.addChild(armLeftPad);
 
-        // Правая рука
         armRight = new ModelRenderer(this, 12, 16);
-        armRight.setRotationPoint(-4.0f, 5.0f, 0.0f);
-        // Box: -3..0, -1..5, -1.5..1.5
+        armRight.setRotationPoint(-4.0f, 12.0f, 0.0f); // было 5.0f
         armRight.addBox(-3.0f, -1.0f, -1.5f, 3, 6, 3);
 
-        // Наплечник правый — дочерний к armRight
         armRightPad = new ModelRenderer(this, 8, 28);
         armRightPad.setRotationPoint(0.0f, 0.0f, 0.0f);
         armRightPad.addBox(-3.5f, -2.5f, -2.0f, 4, 2, 4);
         armRight.addChild(armRightPad);
 
         // ══════════════════════════════════════
-        //  НОГИ
-        //  rotationPoint = (±2, 12, 0)
-        //  Y=12 = конец тела (4 + 8)
-        //  Box: -2..2, 0..5, -2..2  (4x5x4)
+        //  НОГИ  (было Y=12 → стало Y=19)
+        //  Низ ног: 19 + 5 = 24 = земля ✓
         // ══════════════════════════════════════
         legLeft = new ModelRenderer(this, 0, 36);
-        legLeft.setRotationPoint(2.0f, 12.0f, 0.0f);
+        legLeft.setRotationPoint(2.0f, 19.0f, 0.0f);  // было 12.0f
         legLeft.addBox(-2.0f, 0.0f, -2.0f, 4, 5, 4);
 
         legRight = new ModelRenderer(this, 16, 36);
-        legRight.setRotationPoint(-2.0f, 12.0f, 0.0f);
+        legRight.setRotationPoint(-2.0f, 19.0f, 0.0f); // было 12.0f
         legRight.addBox(-2.0f, 0.0f, -2.0f, 4, 5, 4);
     }
 

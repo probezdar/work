@@ -1,3 +1,4 @@
+// gui/GolemInventoryWrapper.java
 package com.etherforge.mod.gui;
 
 import com.etherforge.mod.entities.EntityEtherGolem;
@@ -15,16 +16,32 @@ public class GolemInventoryWrapper implements IInventory {
         this.golem = golem;
     }
 
-    @Override public int getSizeInventory() { return 2; }
-    @Override public boolean isEmpty() {
-        for (ItemStack s : golem.golemInventory)
+    @Override
+    public int getSizeInventory() {
+        return EntityEtherGolem.INVENTORY_SIZE; // 9
+    }
+
+    @Override
+    public boolean isEmpty() {
+        for (ItemStack s : golem.golemInventory) {
             if (!s.isEmpty()) return false;
+        }
         return true;
     }
-    @Override public ItemStack getStackInSlot(int i) {
+
+    @Override
+    public ItemStack getStackInSlot(int i) {
+        if (i < 0 || i >= EntityEtherGolem.INVENTORY_SIZE) {
+            return ItemStack.EMPTY;
+        }
         return golem.golemInventory[i];
     }
-    @Override public ItemStack decrStackSize(int i, int count) {
+
+    @Override
+    public ItemStack decrStackSize(int i, int count) {
+        if (i < 0 || i >= EntityEtherGolem.INVENTORY_SIZE) {
+            return ItemStack.EMPTY;
+        }
         ItemStack stack = golem.golemInventory[i];
         if (stack.isEmpty()) return ItemStack.EMPTY;
         if (stack.getCount() <= count) {
@@ -33,32 +50,43 @@ public class GolemInventoryWrapper implements IInventory {
         }
         return stack.splitStack(count);
     }
-    @Override public ItemStack removeStackFromSlot(int i) {
+
+    @Override
+    public ItemStack removeStackFromSlot(int i) {
+        if (i < 0 || i >= EntityEtherGolem.INVENTORY_SIZE) {
+            return ItemStack.EMPTY;
+        }
         ItemStack s = golem.golemInventory[i];
         golem.golemInventory[i] = ItemStack.EMPTY;
         return s;
     }
-    @Override public void setInventorySlotContents(int i, ItemStack s) {
-        golem.golemInventory[i] = s;
+
+    @Override
+    public void setInventorySlotContents(int i, ItemStack s) {
+        if (i < 0 || i >= EntityEtherGolem.INVENTORY_SIZE) return;
+        golem.golemInventory[i] = s == null ? ItemStack.EMPTY : s;
     }
-    @Override public int getInventoryStackLimit() { return 64; }
-    @Override public void markDirty() {}
-    @Override public boolean isUsableByPlayer(EntityPlayer p) { return true; }
-    @Override public void openInventory(EntityPlayer p) {}
-    @Override public void closeInventory(EntityPlayer p) {}
-    @Override public boolean isItemValidForSlot(int i, ItemStack s) {
-        return true;
-    }
-    @Override public int getField(int id) { return 0; }
-    @Override public void setField(int id, int v) {}
-    @Override public int getFieldCount() { return 0; }
-    @Override public void clear() {
-        for (int i = 0; i < 2; i++)
+
+    @Override public int     getInventoryStackLimit()          { return 64; }
+    @Override public void    markDirty()                       {}
+    @Override public boolean isUsableByPlayer(EntityPlayer p)  { return true; }
+    @Override public void    openInventory(EntityPlayer p)     {}
+    @Override public void    closeInventory(EntityPlayer p)    {}
+    @Override public boolean isItemValidForSlot(int i, ItemStack s) { return true; }
+    @Override public int     getField(int id)                  { return 0; }
+    @Override public void    setField(int id, int v)           {}
+    @Override public int     getFieldCount()                   { return 0; }
+
+    @Override
+    public void clear() {
+        for (int i = 0; i < EntityEtherGolem.INVENTORY_SIZE; i++) {
             golem.golemInventory[i] = ItemStack.EMPTY;
+        }
     }
-    @Override public String getName() { return "golem"; }
-    @Override public boolean hasCustomName() { return false; }
+
+    @Override public String         getName()        { return "golem"; }
+    @Override public boolean        hasCustomName()  { return false; }
     @Override public ITextComponent getDisplayName() {
-        return new TextComponentString("Golem");
+        return new TextComponentString("Golem Inventory");
     }
 }

@@ -1,9 +1,7 @@
 // entities/EntityEtherGolem.java
 package com.etherforge.mod.entities;
 
-import com.etherforge.mod.EtherForge;
 import com.etherforge.mod.golem.GolemCommand;
-import com.etherforge.mod.gui.ModGuiHandler;
 import com.etherforge.mod.items.ItemRuneCommand;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,23 +13,25 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 public abstract class EntityEtherGolem extends EntityCreature {
 
     // ═══════════════════════════════════════════
-    //  Инвентарь голема — 2 слота
+    //  Инвентарь голема — 9 слотов
     // ═══════════════════════════════════════════
-    public ItemStack[] golemInventory = new ItemStack[]{
-            ItemStack.EMPTY,
-            ItemStack.EMPTY
-    };
+    public static final int INVENTORY_SIZE = 9;
+    public ItemStack[] golemInventory = new ItemStack[INVENTORY_SIZE];
 
     // ═══════════════════════════════════════════
     //  Очередь команд
     // ═══════════════════════════════════════════
-    public Deque<GolemTaskEntry> commandQueue = new ArrayDeque<>();
-    public GolemTaskEntry currentTask = null;
+    public Deque<GolemTaskEntry> commandQueue   = new ArrayDeque<>();
+    public List<GolemTaskEntry>  commandHistory = new ArrayList<>(); // для автоповтора
+    public GolemTaskEntry        currentTask    = null;
+    public boolean               loopTasks      = true; // автоповтор вкл/выкл
 
     // ═══════════════════════════════════════════
     //  Привязка к дому
@@ -43,17 +43,17 @@ public abstract class EntityEtherGolem extends EntityCreature {
     // ═══════════════════════════════════════════
     public static class GolemTaskEntry {
         public final GolemCommand command;
-        public final int radius;
-        public final BlockPos target; // для MINE и TRANSFER
+        public final int          radius;
+        public final BlockPos     target;
 
-        public GolemTaskEntry(GolemCommand command, int radius,
+        public GolemTaskEntry(GolemCommand command,
+                              int radius,
                               BlockPos target) {
             this.command = command;
             this.radius  = radius;
             this.target  = target;
         }
 
-        // Сохранение в NBT
         public NBTTagCompound toNBT() {
             NBTTagCompound tag = new NBTTagCompound();
             tag.setString("Command", command.name());
@@ -67,9 +67,9 @@ public abstract class EntityEtherGolem extends EntityCreature {
         }
 
         public static GolemTaskEntry fromNBT(NBTTagCompound tag) {
-            GolemCommand cmd = GolemCommand.valueOf(
+            GolemCommand cmd    = GolemCommand.valueOf(
                     tag.getString("Command"));
-            int radius = tag.getInteger("Radius");
+            int      radius = tag.getInteger("Radius");
             BlockPos target = null;
             if (tag.hasKey("TX")) {
                 target = new BlockPos(
@@ -84,6 +84,10 @@ public abstract class EntityEtherGolem extends EntityCreature {
     public EntityEtherGolem(World world) {
         super(world);
         setSize(0.6f, 1.8f);
+        // Инициализируем инвентарь
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            golemInventory[i] = ItemStack.EMPTY;
+        }
     }
 
     // ═══════════════════════════════════════════
@@ -94,11 +98,13 @@ public abstract class EntityEtherGolem extends EntityCreature {
         ItemStack held = player.getHeldItem(hand);
 
         if (!world.isRemote) {
+
             // 1) Рука с руной — добавить в очередь
-            if (!held.isEmpty() && held.getItem() instanceof ItemRuneCommand) {
+            if (!held.isEmpty()
+                    && held.getItem() instanceof ItemRuneCommand) {
                 ItemRuneCommand rune = (ItemRuneCommand) held.getItem();
-                GolemCommand cmd     = rune.getCommand();
-                int radius           = ItemRuneCommand.getRadius(held);
+                GolemCommand    cmd  = rune.getCommand();
+                int             radius = ItemRuneCommand.getRadius(held);
 
                 BlockPos target = null;
                 if (held.hasTagCompound()
@@ -109,19 +115,28 @@ public abstract class EntityEtherGolem extends EntityCreature {
                             nbt.getInteger("TargetY"),
                             nbt.getInteger("TargetZ"));
                 }
-                commandQueue.addLast(new GolemTaskEntry(cmd, radius, target));
-                player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                        "§dКоманда добавлена: §f" + cmd.name()
-                                + " §7(очередь: " + commandQueue.size() + ")"));
+
+                GolemTaskEntry entry =
+                        new GolemTaskEntry(cmd, radius, target);
+                commandQueue.addLast(entry);
+                commandHistory.add(entry); // сохраняем для автоповтора
+
+                player.sendMessage(
+                        new net.minecraft.util.text.TextComponentString(
+                                "§dКоманда добавлена: §f" + cmd.name()
+                                        + " §7(очередь: "
+                                        + commandQueue.size() + ")"));
                 return true;
             }
 
-            // 2) Shift + пустая рука — очистить очередь
+            // 2) Shift + пустая рука — очистить всё
             if (held.isEmpty() && player.isSneaking()) {
                 commandQueue.clear();
+                commandHistory.clear();
                 currentTask = null;
-                player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                        "§7Очередь очищена."));
+                player.sendMessage(
+                        new net.minecraft.util.text.TextComponentString(
+                                "§7Очередь очищена."));
                 return true;
             }
 
@@ -138,56 +153,31 @@ public abstract class EntityEtherGolem extends EntityCreature {
         return super.processInteract(player, hand);
     }
 
-
-    protected void showStatus(EntityPlayer player) {
-        player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "§6=== Голем ==="));
-        player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "§7HP: §a" + (int) getHealth() + "/"
-                        + (int) getMaxHealth()));
-
-        if (currentTask != null) {
-            player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                    "§7Текущая задача: §d" + currentTask.command.name()));
-        } else {
-            player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                    "§7Текущая задача: §8Нет"));
-        }
-
-        player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                "§7Очередь: §f" + commandQueue.size() + " команд"));
-
-        // Инвентарь
-        for (int i = 0; i < golemInventory.length; i++) {
-            ItemStack s = golemInventory[i];
-            String name = s.isEmpty() ? "§8пусто" :
-                    s.getDisplayName() + " x" + s.getCount();
-            player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                    "§7Слот " + (i + 1) + ": " + name));
-        }
-    }
-
     // ═══════════════════════════════════════════
     //  Инвентарь голема
     // ═══════════════════════════════════════════
     public boolean addItemToInventory(ItemStack stack) {
-        for (int i = 0; i < golemInventory.length; i++) {
-            if (golemInventory[i].isEmpty()) {
-                golemInventory[i] = stack.copy();
-                stack.setCount(0);
-                return true;
-            }
-            // Можно добить в существующий стак
-            if (golemInventory[i].isItemEqual(stack)
-                    && golemInventory[i].getCount()
-                    < golemInventory[i].getMaxStackSize()) {
-                int canFit = golemInventory[i].getMaxStackSize()
-                        - golemInventory[i].getCount();
-                int toAdd  = Math.min(canFit, stack.getCount());
-                golemInventory[i].grow(toAdd);
-                stack.shrink(toAdd);
-                if (stack.isEmpty()) return true;
-            }
+        // Сначала пробуем добить существующий стак
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            if (golemInventory[i].isEmpty()) continue;
+            if (!golemInventory[i].isItemEqual(stack)) continue;
+
+            int canFit = golemInventory[i].getMaxStackSize()
+                    - golemInventory[i].getCount();
+            if (canFit <= 0) continue;
+
+            int toAdd = Math.min(canFit, stack.getCount());
+            golemInventory[i].grow(toAdd);
+            stack.shrink(toAdd);
+            if (stack.isEmpty()) return true;
+        }
+
+        // Ищем пустой слот
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            if (!golemInventory[i].isEmpty()) continue;
+            golemInventory[i] = stack.copy();
+            stack.setCount(0);
+            return true;
         }
         return false; // инвентарь полон
     }
@@ -200,17 +190,53 @@ public abstract class EntityEtherGolem extends EntityCreature {
         return true;
     }
 
+    public boolean isInventoryEmpty() {
+        for (ItemStack s : golemInventory) {
+            if (!s.isEmpty()) return false;
+        }
+        return true;
+    }
+
+    public void clearInventory() {
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            golemInventory[i] = ItemStack.EMPTY;
+        }
+    }
+
     public ItemStack[] getGolemInventory() { return golemInventory; }
-    public BlockPos getHomePos()           { return homePos; }
-    public void setHomePos(BlockPos pos)   { homePos = pos; }
+    public BlockPos    getHomePos()         { return homePos; }
+    public void        setHomePos(BlockPos pos) { homePos = pos; }
 
     // ═══════════════════════════════════════════
-    //  Следующая задача из очереди
+    //  Очередь команд с автоповтором
     // ═══════════════════════════════════════════
     public void advanceQueue() {
-        currentTask = commandQueue.isEmpty()
-                ? null
-                : commandQueue.pollFirst();
+        if (!commandQueue.isEmpty()) {
+            currentTask = commandQueue.pollFirst();
+
+            // Если автоповтор включён — кладём задачу в конец очереди
+            if (loopTasks && currentTask != null) {
+                commandQueue.addLast(currentTask);
+            }
+        } else {
+            // Очередь пуста
+            if (loopTasks && !commandHistory.isEmpty()) {
+                // Восстанавливаем из истории
+                for (GolemTaskEntry entry : commandHistory) {
+                    commandQueue.addLast(entry);
+                }
+                currentTask = commandQueue.pollFirst();
+                if (currentTask != null) {
+                    commandQueue.addLast(currentTask);
+                }
+            } else {
+                currentTask = null;
+            }
+        }
+    }
+
+    public void toggleLoop() {
+        loopTasks = !loopTasks;
     }
 
     // ═══════════════════════════════════════════
@@ -225,26 +251,32 @@ public abstract class EntityEtherGolem extends EntityCreature {
         compound.setInteger("HomeY", homePos.getY());
         compound.setInteger("HomeZ", homePos.getZ());
 
+        // Автоповтор
+        compound.setBoolean("LoopTasks", loopTasks);
+
         // Инвентарь
-        for (int i = 0; i < golemInventory.length; i++) {
+        NBTTagList invList = new NBTTagList();
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            NBTTagCompound slotTag = new NBTTagCompound();
+            slotTag.setByte("Slot", (byte) i);
             if (!golemInventory[i].isEmpty()) {
-                NBTTagCompound tag = new NBTTagCompound();
-                golemInventory[i].writeToNBT(tag);
-                compound.setTag("GolemSlot" + i, tag);
+                golemInventory[i].writeToNBT(slotTag);
             }
+            invList.appendTag(slotTag);
         }
+        compound.setTag("GolemInventory", invList);
 
         // Текущая задача
         if (currentTask != null) {
             compound.setTag("CurrentTask", currentTask.toNBT());
         }
 
-        // Очередь
+        // Очередь (только уникальные — без дублей от автоповтора)
         NBTTagList queueList = new NBTTagList();
-        for (GolemTaskEntry entry : commandQueue) {
+        for (GolemTaskEntry entry : commandHistory) {
             queueList.appendTag(entry.toNBT());
         }
-        compound.setTag("CommandQueue", queueList);
+        compound.setTag("CommandHistory", queueList);
     }
 
     @Override
@@ -256,23 +288,37 @@ public abstract class EntityEtherGolem extends EntityCreature {
                 compound.getInteger("HomeY"),
                 compound.getInteger("HomeZ"));
 
-        for (int i = 0; i < golemInventory.length; i++) {
-            if (compound.hasKey("GolemSlot" + i)) {
-                golemInventory[i] = new ItemStack(
-                        compound.getCompoundTag("GolemSlot" + i));
+        loopTasks = !compound.hasKey("LoopTasks")
+                || compound.getBoolean("LoopTasks");
+
+        // Инвентарь
+        for (int i = 0; i < INVENTORY_SIZE; i++) {
+            golemInventory[i] = ItemStack.EMPTY;
+        }
+        NBTTagList invList = compound.getTagList("GolemInventory", 10);
+        for (int i = 0; i < invList.tagCount(); i++) {
+            NBTTagCompound slotTag = invList.getCompoundTagAt(i);
+            int slot = slotTag.getByte("Slot") & 0xFF;
+            if (slot < INVENTORY_SIZE) {
+                golemInventory[slot] = new ItemStack(slotTag);
             }
         }
 
+        // История команд
+        commandHistory.clear();
+        commandQueue.clear();
+        NBTTagList histList = compound.getTagList("CommandHistory", 10);
+        for (int i = 0; i < histList.tagCount(); i++) {
+            GolemTaskEntry entry = GolemTaskEntry.fromNBT(
+                    histList.getCompoundTagAt(i));
+            commandHistory.add(entry);
+            commandQueue.addLast(entry);
+        }
+
+        // Текущая задача
         if (compound.hasKey("CurrentTask")) {
             currentTask = GolemTaskEntry.fromNBT(
                     compound.getCompoundTag("CurrentTask"));
-        }
-
-        commandQueue.clear();
-        NBTTagList queueList = compound.getTagList("CommandQueue", 10);
-        for (int i = 0; i < queueList.tagCount(); i++) {
-            commandQueue.addLast(
-                    GolemTaskEntry.fromNBT(queueList.getCompoundTagAt(i)));
         }
     }
 }
